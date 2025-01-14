@@ -1,0 +1,49 @@
+# Contributor: Liu Pak Hin <wl@m-labs.hk>
+
+_realname=influxdb
+pkgbase=mingw-w64-python-${_realname}
+pkgname=("${MINGW_PACKAGE_PREFIX}-python-${_realname}")
+pkgver=5.3.2
+pkgrel=1
+pkgdesc='Python client for InfluxDB'
+arch=('any')
+mingw_arch=('mingw64' 'ucrt64' 'clang64' 'clangarm64')
+url="https://github.com/influxdata/influxdb-python"
+msys2_references=(
+  'pypi: influxdb'
+)
+license=('spdx:MIT')
+depends=(
+  "${MINGW_PACKAGE_PREFIX}-python"
+  "${MINGW_PACKAGE_PREFIX}-python-dateutil"
+  "${MINGW_PACKAGE_PREFIX}-python-msgpack"
+  "${MINGW_PACKAGE_PREFIX}-python-pytz"
+  "${MINGW_PACKAGE_PREFIX}-python-requests"
+  "${MINGW_PACKAGE_PREFIX}-python-six"
+)
+checkdepends=(
+    "${MINGW_PACKAGE_PREFIX}-python-pytest"
+    "${MINGW_PACKAGE_PREFIX}-python-mock"
+    "${MINGW_PACKAGE_PREFIX}-python-requests-mock"
+    "${MINGW_PACKAGE_PREFIX}-python-nose"
+    )
+makedepends=("${MINGW_PACKAGE_PREFIX}-python-setuptools")
+source=("https://pypi.org/packages/source/${_realname::1}/${_realname}/${_realname}-${pkgver}.tar.gz")
+sha256sums=('58c647f6043712dd86e9aee12eb4ccfbbb5415467bc9910a48aa8c74c1108970')
+
+build() {
+  cd "${srcdir}"
+  cp -r "${_realname}-${pkgver}" "python-build-${MSYSTEM}" && cd "python-build-${MSYSTEM}"
+
+  "${MINGW_PREFIX}"/bin/python setup.py build
+}
+
+package() {
+  cd "${srcdir}/python-build-${MSYSTEM}"
+
+  MSYS2_ARG_CONV_EXCL="--prefix=;--install-scripts=;--install-platlib=" \
+    "${MINGW_PREFIX}"/bin/python setup.py install --prefix="${MINGW_PREFIX}" \
+      --root="${pkgdir}" --optimize=1 --skip-build
+
+  install -Dm644 LICENSE "${pkgdir}${MINGW_PREFIX}/share/licenses/python-${_realname}/LICENSE"
+}

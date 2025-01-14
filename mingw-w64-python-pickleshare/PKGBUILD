@@ -7,11 +7,14 @@ provides=("${MINGW_PACKAGE_PREFIX}-python3-${_realname}")
 conflicts=("${MINGW_PACKAGE_PREFIX}-python3-${_realname}")
 replaces=("${MINGW_PACKAGE_PREFIX}-python3-${_realname}")
 pkgver=0.7.5
-pkgrel=2
+pkgrel=5
 pkgdesc="File system based database that uses python pickles (mingw-w64)"
 url="https://github.com/pickleshare/pickleshare"
+msys2_references=(
+  'pypi: pickleshare'
+)
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
+mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clangarm64')
 license=('MIT')
 depends=("${MINGW_PACKAGE_PREFIX}-python-path>=8.1")
 makedepends=("${MINGW_PACKAGE_PREFIX}-python-setuptools")
@@ -21,26 +24,26 @@ sha256sums=('7a691d57650dbfb1f101c52d65743f87175cea98bd85cd2a0e92c0407faf3d1c')
 
 prepare() {
   cd "${srcdir}"
-  rm -rf python-build-${CARCH} | true
-  cp -r "${_realname}-${pkgver}" "python-build-${CARCH}"
+  rm -rf python-build-${MSYSTEM} | true
+  cp -r "${_realname}-${pkgver}" "python-build-${MSYSTEM}"
 }
 
 build() {
-  cd "${srcdir}/python-build-${CARCH}"
+  cd "${srcdir}/python-build-${MSYSTEM}"
   ${MINGW_PREFIX}/bin/python setup.py build
 
 }
 
 check() {
-  cd "${srcdir}/python-build-${CARCH}"
+  cd "${srcdir}/python-build-${MSYSTEM}"
   ${MINGW_PREFIX}/bin/nosetests || true
 }
 
 package() {
-  cd "${srcdir}/python-build-${CARCH}"
+  cd "${srcdir}/python-build-${MSYSTEM}"
 
   MSYS2_ARG_CONV_EXCL="--prefix=;--install-scripts=;--install-platlib=" \
-  ${MINGW_PREFIX}/bin/python setup.py install --root=${pkgdir} --prefix=${MINGW_PREFIX} --optimize=1 --skip-build
+  ${MINGW_PREFIX}/bin/python setup.py install --root="${pkgdir}" --prefix=${MINGW_PREFIX} --optimize=1 --skip-build
 
-  install -Dm644 LICENSE ${pkgdir}${MINGW_PREFIX}/share/licenses/python-${_realname}/LICENSE
+  install -Dm644 LICENSE "${pkgdir}"${MINGW_PREFIX}/share/licenses/python-${_realname}/LICENSE
 }

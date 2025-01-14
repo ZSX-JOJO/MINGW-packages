@@ -4,15 +4,19 @@ _realname=gtk-engines
 pkgbase=mingw-w64-${_realname}
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
 pkgver=2.21.0
-pkgrel=4
+pkgrel=5
 pkgdesc="Theme engines for GTK+ 2 (mingw-w64)"
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
+mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clangarm64')
 license=('GPL' 'LGPL')
 depends=("${MINGW_PACKAGE_PREFIX}-gtk2>=2.22.0")
-makedepends=('pkg-config' 'intltool')
+makedepends=(
+  "${MINGW_PACKAGE_PREFIX}-pkgconf"
+  "${MINGW_PACKAGE_PREFIX}-autotools"
+  "${MINGW_PACKAGE_PREFIX}-cc"
+  "intltool"
+)
 url="https://live.gnome.org/GnomeArt"
-options=('staticlibs' 'strip')
 source=(https://sources.archlinux.org/other/gtk-engines/${_realname}-${pkgver}.tar.gz)
 conflicts=("${MINGW_PACKAGE_PREFIX}-lighthouse-gtk2" "${MINGW_PACKAGE_PREFIX}-clearlooks-gtk2")
 replaces=("${MINGW_PACKAGE_PREFIX}-lighthouse-gtk2")
@@ -24,8 +28,8 @@ prepare() {
 }
 
 build() {
-  mkdir -p "${srcdir}/build-${MINGW_CHOST}"
-  cd "${srcdir}/build-${MINGW_CHOST}"
+  mkdir -p "${srcdir}/build-${MSYSTEM}"
+  cd "${srcdir}/build-${MSYSTEM}"
 
   ../${_realname}-${pkgver}/configure \
     --prefix=${MINGW_PREFIX} \
@@ -36,6 +40,6 @@ build() {
 }
 
 package() {
-  cd "${srcdir}/build-${MINGW_CHOST}"
+  cd "${srcdir}/build-${MSYSTEM}"
   make DESTDIR="${pkgdir}" install
 }

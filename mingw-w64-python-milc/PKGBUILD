@@ -1,0 +1,53 @@
+# Maintainer: fauxpark <fauxpark@gmail.com>
+
+_realname=milc
+pkgbase=mingw-w64-python-${_realname}
+pkgname=("${MINGW_PACKAGE_PREFIX}-python-${_realname}")
+pkgver=1.9.0
+pkgrel=1
+pkgdesc="Opinionated Batteries-Included Python 3 CLI Framework (mingw-w64)"
+arch=('any')
+mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clangarm64')
+msys2_references=(
+  'pypi: milc'
+)
+url='https://milc.clueboard.co'
+license=('MIT')
+depends=("${MINGW_PACKAGE_PREFIX}-python"
+         "${MINGW_PACKAGE_PREFIX}-python-argcomplete"
+         "${MINGW_PACKAGE_PREFIX}-python-colorama"
+         "${MINGW_PACKAGE_PREFIX}-python-halo"
+         "${MINGW_PACKAGE_PREFIX}-python-platformdirs")
+makedepends=("${MINGW_PACKAGE_PREFIX}-python"
+             "${MINGW_PACKAGE_PREFIX}-python-setuptools")
+source=(
+  "https://pypi.org/packages/source/${_realname::1}/${_realname}/${_realname}-${pkgver}.tar.gz"
+  "0001-temp-remove-types-colorama.patch")
+sha256sums=('c02ac9a23148a1fb4f339022e929a658ab2c8fe8c1cad10a9bb1226358cc71ce'
+            'bd917622257c828f28dada2c241f40801961b761e3d06bcec2dedf9d7ddc0a9f')
+
+prepare() {
+  cd "${srcdir}/${_realname}-${pkgver}"
+
+  patch -p1 -i ../0001-temp-remove-types-colorama.patch
+}
+
+build() {
+  cd "${srcdir}"
+  cp -r "${_realname}-${pkgver}" "python-build-${MSYSTEM}" && cd "python-build-${MSYSTEM}"
+
+  "${MINGW_PREFIX}"/bin/python setup.py build
+}
+
+package() {
+  cd "${srcdir}/python-build-${MSYSTEM}"
+
+  MSYS2_ARG_CONV_EXCL="--prefix=;--install-scripts=;--install-platlib=" \
+    "${MINGW_PREFIX}"/bin/python setup.py install --prefix="${MINGW_PREFIX}" \
+      --root="${pkgdir}" --optimize=1 --skip-build
+
+  # Undo path translation
+  sed -e '1 { s/^#!.*python.*$/#!\/usr\/bin\/env python3/ }' -i "${pkgdir}/${MINGW_PREFIX}/bin/milc-color"
+
+  install -Dm644 LICENSE "${pkgdir}${MINGW_PREFIX}/share/licenses/python-${_realname}/LICENSE"
+}

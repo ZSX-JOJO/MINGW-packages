@@ -4,30 +4,34 @@
 _realname=ccache
 pkgbase=mingw-w64-${_realname}
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
-pkgver=4.5.1
-pkgrel=1
+pkgver=4.10.2
+pkgrel=4
 pkgdesc="Compiler cache that speeds up recompilation by caching previous compilations (mingw-w64)"
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
+mingw_arch=('mingw64' 'mingw32' 'ucrt64' 'clang64' 'clangarm64')
 url="https://ccache.dev/"
-license=("GPL3")
+msys2_repository_url="https://github.com/ccache/ccache"
+license=("spdx:GPL-3.0-or-later")
 replaces=("${MINGW_PACKAGE_PREFIX}-${_realname}-git")
-makedepends=("${MINGW_PACKAGE_PREFIX}-gcc"
+makedepends=("${MINGW_PACKAGE_PREFIX}-cc"
              "${MINGW_PACKAGE_PREFIX}-cmake"
              "${MINGW_PACKAGE_PREFIX}-ninja"
-             "${MINGW_PACKAGE_PREFIX}-asciidoctor"
-             "${MINGW_PACKAGE_PREFIX}-pkg-config")
+             $([[ ${CARCH} == i686 ]] || echo "${MINGW_PACKAGE_PREFIX}-asciidoctor")
+             "${MINGW_PACKAGE_PREFIX}-pkgconf")
 depends=("${MINGW_PACKAGE_PREFIX}-gcc-libs"
-         "${MINGW_PACKAGE_PREFIX}-hiredis"
-         "${MINGW_PACKAGE_PREFIX}-zstd")
-options=('staticlibs' 'strip')
+         "${MINGW_PACKAGE_PREFIX}-fmt"
+         "${MINGW_PACKAGE_PREFIX}-xxhash"
+         "${MINGW_PACKAGE_PREFIX}-zstd"
+         $([[ ${CARCH} == i686 ]] || echo \
+           "${MINGW_PACKAGE_PREFIX}-hiredis" \
+           "${MINGW_PACKAGE_PREFIX}-libblake3"))
 source=("https://github.com/ccache/ccache/releases/download/v${pkgver}/${_realname}-${pkgver}.tar.xz"{,.asc})
-sha256sums=('51186ebe0326365f4e6131e1caa8911de7da4aa6718efc00680322d63a759517'
+sha256sums=('c0b85ddfc1a3e77b105ec9ada2d24aad617fa0b447c6a94d55890972810f0f5a'
             'SKIP')
 validpgpkeys=('5A939A71A46792CF57866A51996DDA075594ADB8') # Joel Rosdahl <joel@rosdahl.net>
 
 build() {
-  mkdir -p "${srcdir}"/build-${MINGW_CHOST} && cd "${srcdir}"/build-${MINGW_CHOST}
+  mkdir -p "${srcdir}"/build-${MSYSTEM} && cd "${srcdir}"/build-${MSYSTEM}
 
   declare -a extra_config
   if check_option "debug" "n"; then
@@ -36,8 +40,23 @@ build() {
     extra_config+=("-DCMAKE_BUILD_TYPE=Debug")
   fi
 
-  # Note: enabling static linking as default has brought a bug to light in mingw32
-  #       "-DSTATIC_LINK=OFF" can be removed as soon as the bug is fixed
+  if [[ ${CARCH} == x86_64 ]]; then
+    extra_config+=("-DENABLE_DOCUMENTATION=ON")
+  else
+    extra_config+=("-DENABLE_DOCUMENTATION=OFF")
+  fi
+
+  if [[ ${CARCH} == i686 ]]; then
+    extra_config+=("-DREDIS_STORAGE_BACKEND=OFF")
+  else
+    extra_config+=("-DREDIS_STORAGE_BACKEND=ON")
+  fi
+
+  if [[ "${CC}" == "gcc" ]]; then
+    # https://github.com/fmtlib/fmt/issues/4133
+    CXXFLAGS+=" -Wno-error=stringop-overflow"
+  fi
+
   MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
     ${MINGW_PREFIX}/bin/cmake \
       -GNinja \
@@ -45,6 +64,9 @@ build() {
       "${extra_config[@]}" \
       -DBUILD_SHARED_LIBS=ON \
       -DSTATIC_LINK=OFF \
+      -DENABLE_TESTING=OFF \
+      -DCCACHE_DEV_MODE=OFF \
+      -DWARNINGS_AS_ERRORS=OFF \
       ../${_realname}-${pkgver}
 
   ${MINGW_PREFIX}/bin/cmake --build .
@@ -52,19 +74,21 @@ build() {
 
 check() {
   # run unittest to verify that the program is not broken
-  cd "${srcdir}"/build-${MINGW_CHOST}
+  cd "${srcdir}"/build-${MSYSTEM}
+  ${MINGW_PREFIX}/bin/cmake -DENABLE_TESTING=ON ../${_realname}-${pkgver}
+  ${MINGW_PREFIX}/bin/cmake --build .
   ${MINGW_PREFIX}/bin/ctest -R unittest
 }
 
 package() {
-  cd "${srcdir}/build-${MINGW_CHOST}"
+  cd "${srcdir}/build-${MSYSTEM}"
 
-  DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake --build . --target install
+  DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake --install .
 
   # hack: use bash scripts as shortcuts since we cannot use symlinks
-  install -d ${pkgdir}${MINGW_PREFIX}/lib/ccache/bin
-  cd ${pkgdir}${MINGW_PREFIX}/lib/ccache/bin
-  scripts=(c++ cc cpp gcc g++ ${MINGW_CHOST}-g++ ${MINGW_CHOST}-c++ ${MINGW_CHOST}-gcc)
+  install -d "${pkgdir}"${MINGW_PREFIX}/lib/ccache/bin
+  cd "${pkgdir}"${MINGW_PREFIX}/lib/ccache/bin
+  scripts=(c++ cc cpp ${CC} ${CXX} ${MINGW_CHOST}-${CXX} ${MINGW_CHOST}-c++ ${MINGW_CHOST}-${CC})
   for fn in ${scripts[*]}; do
     echo -e '#!/bin/bash\n\nccache '${MINGW_PREFIX}'/bin/'$fn' "$@"' > $fn
   done

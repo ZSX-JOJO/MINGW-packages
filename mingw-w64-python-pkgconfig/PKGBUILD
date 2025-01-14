@@ -7,40 +7,42 @@ provides=("${MINGW_PACKAGE_PREFIX}-python3-${_realname}")
 conflicts=("${MINGW_PACKAGE_PREFIX}-python3-${_realname}")
 replaces=("${MINGW_PACKAGE_PREFIX}-python3-${_realname}")
 pkgver=1.5.5
-pkgrel=1
+pkgrel=4
 pkgdesc="A Python interface to the pkg-config command line tool"
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
+mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clangarm64')
+msys2_references=(
+  'pypi: pkgconfig'
+)
 url='https://github.com/matze/pkgconfig'
 license=('MIT')
 depends=("${MINGW_PACKAGE_PREFIX}-python")
 makedepends=("${MINGW_PACKAGE_PREFIX}-python-setuptools")
 checkdepends=("${MINGW_PACKAGE_PREFIX}-python-pytest"
               "${MINGW_PACKAGE_PREFIX}-python-nose")
-options=('staticlibs' 'strip' '!debug')
 source=("https://pypi.io/packages/source/p/pkgconfig/${_realname}-${pkgver}.tar.gz")
 sha512sums=('ffa838d0146125c4158b747b619cc5eed41da0e2f04664a4db89909a486922120a0e1779f99dfcda0da3e98b8770c57b638a9c7bc5994cd8102aa3cf990905b0')
 
 prepare() {
   cd "${srcdir}"
-  rm -rf python-build-${CARCH} | true
-  cp -r "${_realname}-${pkgver}" "python-build-${CARCH}"
+  rm -rf python-build-${MSYSTEM} | true
+  cp -r "${_realname}-${pkgver}" "python-build-${MSYSTEM}"
 }
 
 build() {
-  msg "Python build for ${CARCH}"  
-  cd "${srcdir}/python-build-${CARCH}"
+  msg "Python build for ${MSYSTEM}"  
+  cd "${srcdir}/python-build-${MSYSTEM}"
   ${MINGW_PREFIX}/bin/python setup.py build
 }
 
 check() {
-  msg "Python test for ${CARCH}"
-  cd "${srcdir}/python-build-${CARCH}"
+  msg "Python test for ${MSYSTEM}"
+  cd "${srcdir}/python-build-${MSYSTEM}"
   ${MINGW_PREFIX}/bin/python setup.py test
 }
 
 package() {
-  cd "${srcdir}/python-build-${CARCH}"
+  cd "${srcdir}/python-build-${MSYSTEM}"
   MSYS2_ARG_CONV_EXCL="--prefix=;--install-scripts=;--install-platlib=" \
   ${MINGW_PREFIX}/bin/python setup.py install --prefix=${MINGW_PREFIX} \
     --root="${pkgdir}" --optimize=2 --skip-build

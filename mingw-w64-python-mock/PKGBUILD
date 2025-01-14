@@ -3,14 +3,14 @@
 _realname=mock
 pkgbase=mingw-w64-python-${_realname}
 pkgname=( "${MINGW_PACKAGE_PREFIX}-python-${_realname}")
-provides=("${MINGW_PACKAGE_PREFIX}-python3-${_realname}")
-conflicts=("${MINGW_PACKAGE_PREFIX}-python3-${_realname}")
-replaces=("${MINGW_PACKAGE_PREFIX}-python3-${_realname}")
-pkgver=4.0.3
+pkgver=5.1.0
 pkgrel=2
 pkgdesc='Rolling backport of unittest.mock for all Pythons (mingw-w64)'
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32' 'clangarm64')
+mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clangarm64')
+msys2_references=(
+  'pypi: mock'
+)
 url='https://github.com/testing-cabal/mock'
 license=('BSD')
 depends=("${MINGW_PACKAGE_PREFIX}-python"
@@ -19,19 +19,19 @@ depends=("${MINGW_PACKAGE_PREFIX}-python"
 makedepends=("${MINGW_PACKAGE_PREFIX}-python-setuptools"
              "${MINGW_PACKAGE_PREFIX}-python-funcsigs")
 source=("https://pypi.python.org/packages/source/m/${_realname}/${_realname}-${pkgver}.tar.gz")
-sha256sums=('7d3fbbde18228f4ff2f1f119a45cdffa458b4c0dee32eb4d2bb2f82554bac7bc')
+sha256sums=('5e96aad5ccda4718e0a229ed94b2024df75cc2d55575ba5762d31f5767b8767d')
 noextract=(${_realname}-${pkgver}.tar.gz)
 
 prepare() {
-  [[ -d ${srcdir}/${_realname}-${pkgver} ]] && rm -rf ${srcdir}/${_realname}-${pkgver}
-  tar -xzf ${srcdir}/${_realname}-${pkgver}.tar.gz -C ${srcdir} || true
+  [[ -d "${srcdir}"/${_realname}-${pkgver} ]] && rm -rf "${srcdir}"/${_realname}-${pkgver}
+  tar -xzf "${srcdir}"/${_realname}-${pkgver}.tar.gz -C "${srcdir}" || true
 
   cd "${srcdir}"
-  cp -r ${_realname}-${pkgver} python-build-${CARCH}
+  cp -r ${_realname}-${pkgver} python-build-${MSYSTEM}
 }
 
 package() {
-  cd ${srcdir}/python-build-${CARCH}
+  cd "${srcdir}"/python-build-${MSYSTEM}
   MSYS2_ARG_CONV_EXCL="--prefix=;--install-scripts=;--install-platlib=" \
   ${MINGW_PREFIX}/bin/python setup.py install --prefix=${MINGW_PREFIX} \
     --root="${pkgdir}" --optimize=1

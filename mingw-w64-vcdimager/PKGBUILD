@@ -4,15 +4,17 @@ _realname=vcdimager
 pkgbase=mingw-w64-${_realname}
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
 pkgver=2.0.1
-pkgrel=3
+pkgrel=4
 pkgdesc="A full-featured mastering suite for authoring disassembling and analyzing Video CD's and Super Video CD's (mingw-w64)"
 arch=(any)
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
+mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clangarm64')
 url="http://www.vcdimager.org/"
 license=('GPL')
 depends=("${MINGW_PACKAGE_PREFIX}-libcdio"
          "${MINGW_PACKAGE_PREFIX}-libxml2"
          "${MINGW_PACKAGE_PREFIX}-popt")
+makedepends=("${MINGW_PACKAGE_PREFIX}-autotools"
+             "${MINGW_PACKAGE_PREFIX}-cc")
 source=("https://ftp.gnu.org/gnu/vcdimager/${_realname}-${pkgver}.tar.gz"
         002-no-undefined.patch
         003-static-vcd-lib.patch)
@@ -29,8 +31,8 @@ prepare() {
 }
 
 build() {
-  [[ -d build-${MINGW_CHOST} ]] && rm -rf build-${MINGW_CHOST}
-  mkdir -p build-${MINGW_CHOST} && cd build-${MINGW_CHOST}
+  mkdir -p build-${MSYSTEM} && cd build-${MSYSTEM}
+
   ../${_realname}-${pkgver}/configure \
     --prefix=${MINGW_PREFIX} \
     --build=${MINGW_CHOST} \
@@ -44,6 +46,6 @@ build() {
 }
 
 package() {
-  cd build-${MINGW_CHOST}
+  cd build-${MSYSTEM}
   make DESTDIR="${pkgdir}" install
 }

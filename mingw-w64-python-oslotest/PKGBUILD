@@ -3,31 +3,26 @@
 _realname=oslotest
 pkgbase=mingw-w64-python-${_realname}
 pkgname=("${MINGW_PACKAGE_PREFIX}-python-${_realname}")
-provides=("${MINGW_PACKAGE_PREFIX}-python3-${_realname}")
-conflicts=("${MINGW_PACKAGE_PREFIX}-python3-${_realname}")
-replaces=("${MINGW_PACKAGE_PREFIX}-python3-${_realname}")
-pkgver=4.4.1
-pkgrel=3
+pkgver=5.0.0
+pkgrel=1
 pkgdesc="Oslo test framework (mingw-w64)"
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
+mingw_arch=('mingw64' 'ucrt64' 'clang64' 'clangarm64')
 url='https://github.com/openstack/oslotest'
+msys2_references=(
+  'pypi: oslotest'
+)
 license=('Apache')
-depends=("${MINGW_PACKAGE_PREFIX}-python")
-makedepends=("${MINGW_PACKAGE_PREFIX}-python-setuptools"
-             "${MINGW_PACKAGE_PREFIX}-python-pbr"
-             "${MINGW_PACKAGE_PREFIX}-python-fixtures"
-             "${MINGW_PACKAGE_PREFIX}-python-subunit"
-             "${MINGW_PACKAGE_PREFIX}-python-stestr"
-             "${MINGW_PACKAGE_PREFIX}-python-testscenarios"
-             "${MINGW_PACKAGE_PREFIX}-python-testtools"
-             "${MINGW_PACKAGE_PREFIX}-python-mock"
-             "${MINGW_PACKAGE_PREFIX}-python-mox3"
-             # "${MINGW_PACKAGE_PREFIX}-python-os-client-config"
-             "${MINGW_PACKAGE_PREFIX}-python-debtcollector")
-options=('staticlibs' 'strip' '!debug')
+depends=("${MINGW_PACKAGE_PREFIX}-python-fixtures"
+         "${MINGW_PACKAGE_PREFIX}-python-subunit"
+         "${MINGW_PACKAGE_PREFIX}-python-testtools")
+makedepends=("${MINGW_PACKAGE_PREFIX}-python-pbr"
+             "${MINGW_PACKAGE_PREFIX}-python-setuptools")
+checkdepends=(
+  "${MINGW_PACKAGE_PREFIX}-python-stestr"
+)
 source=("${_realname}-${pkgver}.tar.gz"::"https://github.com/openstack/oslotest/archive/${pkgver}.tar.gz")
-sha512sums=('7b1ad2f673a52719f6f977abf52c315de1b6299083d73db23706b6c947e72f3d104e7eb254b1031d1baf03cd60fc9c5328352eb19eabdaeef3eca34e53b5f4d3')
+sha512sums=('badae6becfc587e54bc8f19737e3033ea2b23b1b745e964b9337a4d4742a4b4348f01a37129e3fa72950385af3acbaa740070c7ad033d83e35ac69780a9f5b70')
 
 
 # Helper macros to help make tasks easier #
@@ -51,8 +46,8 @@ del_file_exists() {
 
 prepare() {
   cd "${srcdir}"
-  rm -rf python-build-${CARCH} | true
-  cp -r "${_realname}-${pkgver}" "python-build-${CARCH}"
+  rm -rf python-build-${MSYSTEM} | true
+  cp -r "${_realname}-${pkgver}" "python-build-${MSYSTEM}"
 
   # Set version for setuptools_scm
   export SETUPTOOLS_SCM_PRETEND_VERSION=${pkgver}
@@ -60,19 +55,19 @@ prepare() {
 }
 
 build() {
-  msg "Python build for ${CARCH}"  
-  cd "${srcdir}/python-build-${CARCH}"
+  msg "Python build for ${MSYSTEM}"
+  cd "${srcdir}/python-build-${MSYSTEM}"
   ${MINGW_PREFIX}/bin/python setup.py build
 }
 
 check() {
-  msg "Python test for ${CARCH}"
-  cd "${srcdir}/python-build-${CARCH}"
+  msg "Python test for ${MSYSTEM}"
+  cd "${srcdir}/python-build-${MSYSTEM}"
   PYTHON=${MINGW_PREFIX}/bin/python ${MINGW_PREFIX}/bin/stestr run
 }
 
 package() {
-  cd "${srcdir}/python-build-${CARCH}"
+  cd "${srcdir}/python-build-${MSYSTEM}"
   MSYS2_ARG_CONV_EXCL="--prefix=;--install-scripts=;--install-platlib=" \
   ${MINGW_PREFIX}/bin/python setup.py install --prefix=${MINGW_PREFIX} \
     --root="${pkgdir}" --optimize=1 --skip-build

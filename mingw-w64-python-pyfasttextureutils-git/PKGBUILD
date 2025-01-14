@@ -6,14 +6,17 @@ pkgname=("${MINGW_PACKAGE_PREFIX}-python-${_realname}-git")
 conflicts=("${MINGW_PACKAGE_PREFIX}-python-${_realname}")
 provides=("${MINGW_PACKAGE_PREFIX}-python-${_realname}")
 pkgver=0.r2.8fd8558
-pkgrel=2
+pkgrel=5
 pkgdesc='Python module for quickly making certain modifications to images (mingw-w64)'
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
+mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clangarm64')
 url="https://github.com/LagoLunatic/PyFastTextureUtils"
 license=('MIT')
 depends=("${MINGW_PACKAGE_PREFIX}-python")
-makedepends=("${MINGW_PACKAGE_PREFIX}-python-setuptools" "git" "patch")
+makedepends=("${MINGW_PACKAGE_PREFIX}-python-setuptools"
+             "git"
+             "patch"
+             "${MINGW_PACKAGE_PREFIX}-cc")
 _gitcommit=8fd8558f710c537d852ae407a5b316ab8bbb2337
 source=("git+https://github.com/LagoLunatic/PyFastTextureUtils#commit=${_gitcommit}"
 "minmax.patch")
@@ -27,20 +30,20 @@ pkgver() {
 
 prepare() {  
   cd "$srcdir"
-  rm -rf python-build-${CARCH} | true
-  cp -r "PyFastTextureUtils" "python-build-${CARCH}"
-  cd "${srcdir}/python-build-${CARCH}"
+  rm -rf python-build-${MSYSTEM} | true
+  cp -r "PyFastTextureUtils" "python-build-${MSYSTEM}"
+  cd "${srcdir}/python-build-${MSYSTEM}"
   patch -Np2 -i ../minmax.patch
 }
 
 build() {
-  msg "Python build for ${CARCH}"
-  cd "${srcdir}/python-build-${CARCH}"
+  msg "Python build for ${MSYSTEM}"
+  cd "${srcdir}/python-build-${MSYSTEM}"
   ${MINGW_PREFIX}/bin/python setup.py build
 }
 
 package() {
-  cd "${srcdir}/python-build-${CARCH}"
+  cd "${srcdir}/python-build-${MSYSTEM}"
   MSYS2_ARG_CONV_EXCL="--prefix=;--install-scripts=;--install-platlib=" \
   ${MINGW_PREFIX}/bin/python setup.py install --prefix=${MINGW_PREFIX} \
     --root="${pkgdir}" --optimize=1 --skip-build

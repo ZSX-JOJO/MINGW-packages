@@ -6,14 +6,16 @@ pkgname=("${MINGW_PACKAGE_PREFIX}-python-${_realname}-git")
 conflicts=("${MINGW_PACKAGE_PREFIX}-python-${_realname}")
 provides=("${MINGW_PACKAGE_PREFIX}-python-${_realname}")
 pkgver=0.r3.da01c14
-pkgrel=2
+pkgrel=5
 pkgdesc='Python module for quickly handling BTI image files (mingw-w64)'
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
+mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clangarm64')
 url="https://github.com/LagoLunatic/PyFastBTI"
 license=('MIT')
 depends=("${MINGW_PACKAGE_PREFIX}-python")
-makedepends=("${MINGW_PACKAGE_PREFIX}-python-setuptools" "git")
+makedepends=("${MINGW_PACKAGE_PREFIX}-python-setuptools"
+             "git"
+             "${MINGW_PACKAGE_PREFIX}-cc")
 _gitcommit=da01c14562a4711e031fd0a01c52d2131035e228
 source=("git+https://github.com/LagoLunatic/PyFastBTI#commit=${_gitcommit}")
 sha256sums=('SKIP')
@@ -25,19 +27,19 @@ pkgver() {
 
 prepare() {  
   cd "$srcdir"
-  rm -rf python-build-${CARCH} | true
-  cp -r "PyFastBTI" "python-build-${CARCH}"
-  cd "${srcdir}/python-build-${CARCH}"
+  rm -rf python-build-${MSYSTEM} | true
+  cp -r "PyFastBTI" "python-build-${MSYSTEM}"
+  cd "${srcdir}/python-build-${MSYSTEM}"
 }
 
 build() {
-  msg "Python build for ${CARCH}"
-  cd "${srcdir}/python-build-${CARCH}"
+  msg "Python build for ${MSYSTEM}"
+  cd "${srcdir}/python-build-${MSYSTEM}"
   ${MINGW_PREFIX}/bin/python setup.py build
 }
 
 package() {
-  cd "${srcdir}/python-build-${CARCH}"
+  cd "${srcdir}/python-build-${MSYSTEM}"
   MSYS2_ARG_CONV_EXCL="--prefix=;--install-scripts=;--install-platlib=" \
   ${MINGW_PREFIX}/bin/python setup.py install --prefix=${MINGW_PREFIX} \
     --root="${pkgdir}" --optimize=1 --skip-build

@@ -7,11 +7,15 @@ provides=("${MINGW_PACKAGE_PREFIX}-python3-${_realname}")
 conflicts=("${MINGW_PACKAGE_PREFIX}-python3-${_realname}")
 replaces=("${MINGW_PACKAGE_PREFIX}-python3-${_realname}")
 pkgver=1.1
-pkgrel=2
+pkgrel=5
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32' 'clangarm64')
+mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clangarm64')
 pkgdesc="A Python HTML parser/tokenizer based on the WHATWG HTML5 spec (mingw-w64)"
 url="https://github.com/html5lib"
+msys2_references=(
+  'pypi: html5lib'
+  "cpe: cpe:2.3:a:html5lib:html5lib"
+)
 license=('MIT')
 depends=("${MINGW_PACKAGE_PREFIX}-python"
          "${MINGW_PACKAGE_PREFIX}-python-six"
@@ -33,28 +37,28 @@ prepare() {
     cp -r "${srcdir}/html5lib-tests-${_test_commit}" html5lib/tests/testdata
   popd
 
-  rm -rf python-build-${CARCH} | true
-  cp -r "${_realname}-python-${pkgver}" "python-build-${CARCH}"
+  rm -rf python-build-${MSYSTEM} | true
+  cp -r "${_realname}-python-${pkgver}" "python-build-${MSYSTEM}"
 }
 
 build() {
-  msg2 "Python build for ${CARCH}"  
-  cd "${srcdir}/python-build-${CARCH}"
+  msg2 "Python build for ${MSYSTEM}"  
+  cd "${srcdir}/python-build-${MSYSTEM}"
   ${MINGW_PREFIX}/bin/python setup.py build
 }
 
 check() {
   msg2 "Python check for ${CARCH}"
-  cd ${srcdir}/python-build-${CARCH}
+  cd "${srcdir}"/python-build-${MSYSTEM}
   ${MINGW_PREFIX}/bin/py.test
 
 }
 
 package() {
-  cd "${srcdir}/python-build-${CARCH}"
+  cd "${srcdir}/python-build-${MSYSTEM}"
 
   MSYS2_ARG_CONV_EXCL="--prefix=;--install-scripts=;--install-platlib=" \
   ${MINGW_PREFIX}/bin/python setup.py install --prefix=${MINGW_PREFIX} \
     --root="${pkgdir}" --optimize=1 --skip-build
-  install -Dm755 LICENSE ${pkgdir}${MINGW_PREFIX}/share/licenses/python-${_realname}/LICENSE
+  install -Dm755 LICENSE "${pkgdir}"${MINGW_PREFIX}/share/licenses/python-${_realname}/LICENSE
 }

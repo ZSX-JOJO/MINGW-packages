@@ -4,11 +4,15 @@ _realname=setuptools-git
 pkgbase=mingw-w64-python-${_realname}
 pkgname=("${MINGW_PACKAGE_PREFIX}-python-${_realname}")
 pkgver=1.2
-pkgrel=2
+pkgrel=5
 pkgdesc="Setuptools revision control system plugin for Git (mingw-w64)"
 url="https://pypi.org/project/setuptools-git/"
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
+mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clangarm64')
+msys2_references=(
+  'archlinux: python-setuptools-git'
+  'pypi: setuptools-git'
+)
 license=('BSD')
 depends=("${MINGW_PACKAGE_PREFIX}-python"
         'git')
@@ -22,24 +26,24 @@ sha512sums=('c070911618b6b92c862fb0bd40f1daeaf79e2ba10389fa1e69e4c50cfdd39c8e57a
 
 prepare() {
   cd "${_pyname//_/-}-$pkgver"
-  patch -p1 -i ${srcdir}/0001-use-git-show-prefix.patch
+  patch -p1 -i "${srcdir}"/0001-use-git-show-prefix.patch
   cd "${srcdir}"
-  rm -rf python-build-${CARCH}
-  cp -r "${_pyname//_/-}-$pkgver" "python-build-${CARCH}"
+  rm -rf python-build-${MSYSTEM}
+  cp -r "${_pyname//_/-}-$pkgver" "python-build-${MSYSTEM}"
 }
 
 check(){
-  cd "${srcdir}/python-build-${CARCH}/${pyname}"
+  cd "${srcdir}/python-build-${MSYSTEM}/${pyname}"
   ${MINGW_PREFIX}/bin/python -m unittest || true
 }
 
 build() {
-  cd "${srcdir}/python-build-${CARCH}"
+  cd "${srcdir}/python-build-${MSYSTEM}"
   ${MINGW_PREFIX}/bin/python setup.py build
 }
 
 package() {
-  cd "${srcdir}/python-build-${CARCH}"
+  cd "${srcdir}/python-build-${MSYSTEM}"
   MSYS2_ARG_CONV_EXCL="--prefix=;--install-scripts=;--install-platlib=" \
-  ${MINGW_PREFIX}/bin/python setup.py install --root=${pkgdir} --prefix=${MINGW_PREFIX} --optimize=1 --skip-build
+  ${MINGW_PREFIX}/bin/python setup.py install --root="${pkgdir}" --prefix=${MINGW_PREFIX} --optimize=1 --skip-build
 }
