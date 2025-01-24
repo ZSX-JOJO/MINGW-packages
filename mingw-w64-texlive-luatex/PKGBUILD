@@ -3,13 +3,13 @@
 _realname=texlive-luatex
 pkgbase=mingw-w64-${_realname}
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
-pkgver=2021.20210906
-_revnr=${pkgver#2021.}
+pkgver=2023.20230404
+_revnr=${pkgver#2023.}
 pkgrel=1
 pkgdesc="TeX Live - LuaTeX packages (mingw-w64)"
 license=('GPL')
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
+mingw_arch=('mingw64' 'ucrt64' 'clang64')
 depends=(
     "${MINGW_PACKAGE_PREFIX}-texlive-core"
 )
@@ -23,8 +23,8 @@ source=("${_realname}-${_revnr}.tar.xz::https://github.com/msys2/msys2-texlive/r
     "${_realname}-extra-files.tar.xz::https://github.com/msys2/msys2-texlive/releases/download/${_revnr}/${_realname}-extra-files.tar.xz")
 options=('!emptydirs')
 sha256sums=(
-    "bb379f38bf5ebaa92a3c5b80aa4fd7c03b2c2dc582ea67116ac7becce2a21ea4"
-    "135da4afd58016eb2ffc969f50f603ade16321f5700c5923a2383193292c67a5"
+    "57539dce2ab82fc5ef6bcf2e0b66205112151822bb79f6a27e3db39070c43c16"
+    "6f1dfcb111e0246f14eee0e9b94d69dbd09c2a052685a932cdd515ee043a13bb"
 )
 
 build() {

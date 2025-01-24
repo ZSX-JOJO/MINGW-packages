@@ -3,32 +3,30 @@
 _realname=orc
 pkgbase=mingw-w64-${_realname}
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
-pkgver=0.4.32
+pkgver=0.4.40
 pkgrel=1
 pkgdesc="The Oild Runtime Compiler (mingw-w64)"
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
+mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clangarm64')
 url="https://gstreamer.freedesktop.org/projects/orc.html"
+msys2_repository_url="https://gitlab.freedesktop.org/gstreamer/orc"
 license=("custom")
-makedepends=("${MINGW_PACKAGE_PREFIX}-gcc"
-             "${MINGW_PACKAGE_PREFIX}-pkg-config"
+makedepends=("${MINGW_PACKAGE_PREFIX}-cc"
+             "${MINGW_PACKAGE_PREFIX}-pkgconf"
              "${MINGW_PACKAGE_PREFIX}-meson"
              "${MINGW_PACKAGE_PREFIX}-ninja")
-options=('strip' 'staticlibs')
 source=("https://gstreamer.freedesktop.org/src/orc/${_realname}-${pkgver}.tar.xz")
-sha256sums=('a66e3d8f2b7e65178d786a01ef61f2a0a0b4d0b8370de7ce134ba73da4af18f0')
+sha256sums=('3fc2bee78dfb7c41fd9605061fc69138db7df007eae2f669a1f56e8bacef74ab')
 
 prepare() {
   cd "${srcdir}/${_realname}-${pkgver}"
 }
 
 build() {
-  [[ -d "build-${MINGW_CHOST}" ]] && rm -rf "build-${MINGW_CHOST}"
-  mkdir -p "${srcdir}/build-${MINGW_CHOST}"
-  cd "${srcdir}/build-${MINGW_CHOST}"
+  mkdir -p "${srcdir}/build-${MSYSTEM}" && cd "${srcdir}/build-${MSYSTEM}"
 
   MSYS2_ARG_CONV_EXCL="--prefix=" \
-  ${MINGW_PREFIX}/bin/meson \
+  ${MINGW_PREFIX}/bin/meson setup \
     --prefix="${MINGW_PREFIX}" \
     --buildtype plain \
     -Dauto_features=enabled \
@@ -39,7 +37,7 @@ build() {
 }
 
 package() {
-  cd "${srcdir}/build-${MINGW_CHOST}"
+  cd "${srcdir}/build-${MSYSTEM}"
 
   DESTDIR="${pkgdir}" meson install
 

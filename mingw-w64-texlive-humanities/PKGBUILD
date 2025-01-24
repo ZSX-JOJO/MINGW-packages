@@ -3,13 +3,13 @@
 _realname=texlive-humanities
 pkgbase=mingw-w64-${_realname}
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
-pkgver=2021.20210906
-_revnr=${pkgver#2021.}
+pkgver=2023.20230404
+_revnr=${pkgver#2023.}
 pkgrel=1
 pkgdesc="TeX Live - Humanities packages (mingw-w64)"
 license=('GPL')
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
+mingw_arch=('mingw64' 'ucrt64' 'clang64')
 depends=(
     "${MINGW_PACKAGE_PREFIX}-texlive-core"
 )
@@ -22,8 +22,8 @@ source=("${_realname}-${_revnr}.tar.xz::https://github.com/msys2/msys2-texlive/r
     "${_realname}-extra-files.tar.xz::https://github.com/msys2/msys2-texlive/releases/download/${_revnr}/${_realname}-extra-files.tar.xz")
 options=('!emptydirs')
 sha256sums=(
-    "7a3397ebdda4868966c5510e8bbf4086c16ee53be1dd5bb17b69de1c2e906adc"
-    "25c4ab235dc21817b0948c0783b633aceaef79da7bd7a4115e839670d33aab89"
+    "0aa995a9506e7d33d5e269471f96ba5a50b81875fc06131a27781dc50085743e"
+    "ee0ea4321e8d3bfc40bff1a481b7ebe1f77ca99750535c7bea925dfd6034df6a"
 )
 
 build() {

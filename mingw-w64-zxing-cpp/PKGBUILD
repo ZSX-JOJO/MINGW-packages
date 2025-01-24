@@ -1,29 +1,32 @@
 # Maintainer: Ariel Axionl <i at axionl dot me>
+
 _realname=zxing-cpp
 pkgbase=mingw-w64-${_realname}
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
-pkgver=1.2.0
+pkgver=2.3.0
 pkgrel=1
-pkgdesc='A C++ library to decode QRCode'
+pkgdesc='A multi-format linear/matrix barcode image processing library implemented in C++ (mingw-w64)'
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
-url='https://github.com/nu-book/zxing-cpp'
-license=('Apache')
+mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clangarm64')
+url='https://github.com/zxing-cpp/zxing-cpp'
+license=('spdx:Apache-2.0')
 depends=("${MINGW_PACKAGE_PREFIX}-gcc-libs")
-makedepends=("${MINGW_PACKAGE_PREFIX}-gcc"
+makedepends=("${MINGW_PACKAGE_PREFIX}-cc"
              "${MINGW_PACKAGE_PREFIX}-cmake"
-             "${MINGW_PACKAGE_PREFIX}-ninja")
-options=('staticlibs')
-source=(https://github.com/nu-book/zxing-cpp/archive/v$pkgver/${_realname}-$pkgver.tar.gz)
+             "${MINGW_PACKAGE_PREFIX}-ninja"
+             "unzip")
+source=(https://github.com/zxing-cpp/zxing-cpp/archive/v${pkgver}/${_realname}-${pkgver}.zip)
+noextract=("${_realname}-${pkgver}.zip")
+sha256sums=('89b70f6175c6347d72bdc72722d643c0f461dc8a0d9bbc4c927a240b32b706f2')
 
-sha256sums=('653d9e44195d86cf64a36af9ff3a1978ec5599df3882439fefa56e7064f55e8a')
+prepare() {
+  unzip -q "${_realname}-${pkgver}.zip"
+  cd "${srcdir}/${_realname}-${pkgver}"
+}
 
 build() {
   # Shared Build
-  [[ -d "build-${MINGW_CHOST}-shared" ]] && rm -rf "build-${MINGW_CHOST}-shared"
-
-  mkdir -p ${srcdir}/build-${MINGW_CHOST}-shared
-  cd ${srcdir}/build-${MINGW_CHOST}-shared
+  mkdir -p "${srcdir}"/build-${MSYSTEM}-shared && cd "${srcdir}"/build-${MSYSTEM}-shared
 
   MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
   ${MINGW_PREFIX}/bin/cmake.exe \
@@ -35,13 +38,10 @@ build() {
   -DBUILD_BLACKBOX_TESTS=OFF \
   ../${_realname}-${pkgver}
 
-  cmake --build .
+  ${MINGW_PREFIX}/bin/cmake.exe --build .
 
   # Static Build
-  [[ -d "build-${MINGW_CHOST}-static" ]] && rm -rf "build-${MINGW_CHOST}-static"
-
-  mkdir -p ${srcdir}/build-${MINGW_CHOST}-static
-  cd ${srcdir}/build-${MINGW_CHOST}-static
+  mkdir -p "${srcdir}"/build-${MSYSTEM}-static && cd "${srcdir}"/build-${MSYSTEM}-static
 
   MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
   ${MINGW_PREFIX}/bin/cmake.exe \
@@ -53,15 +53,17 @@ build() {
   -DBUILD_BLACKBOX_TESTS=OFF \
   ../${_realname}-${pkgver}
 
-  cmake --build .
+  ${MINGW_PREFIX}/bin/cmake.exe --build .
 }
 
 package() {
   # Static Install
-  cd "${srcdir}/build-${MINGW_CHOST}-static"
-  DESTDIR=${pkgdir} cmake --install .
+  cd "${srcdir}/build-${MSYSTEM}-static"
+  DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake.exe --install .
 
   # Shared Install
-  cd "${srcdir}/build-${MINGW_CHOST}-shared"
-  DESTDIR=${pkgdir} cmake --install .
+  cd "${srcdir}/build-${MSYSTEM}-shared"
+  DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake.exe --install .
+
+  install -Dm644 "${srcdir}/${_realname}-${pkgver}/LICENSE" "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE"
 }

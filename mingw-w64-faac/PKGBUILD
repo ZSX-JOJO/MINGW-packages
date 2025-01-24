@@ -7,14 +7,15 @@ pkgver=1.30
 pkgrel=2
 pkgdesc="FAAC is an AAC audio encoder (mingw-w64)"
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
+mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clangarm64')
 url='https://github.com/knik0/faac'
 license=('GPL2')
+makedepends=("${MINGW_PACKAGE_PREFIX}-autotools" "${MINGW_PACKAGE_PREFIX}-cc")
 source=("https://github.com/knik0/${_realname}/archive/${pkgver//\./_}.tar.gz")
 sha256sums=('adc387ce588cca16d98c03b6ec1e58f0ffd9fc6eadb00e254157d6b16203b2d2')
 
 prepare() {
-  cd ${srcdir}/${_realname}-${pkgver//\./_}
+  cd "${srcdir}"/${_realname}-${pkgver//\./_}
 
   if [[ ${MINGW_PACKAGE_PREFIX} == *-clang-* ]]; then
     sed -i "s/-Wl,--add-stdcall-alias//g" libfaac/Makefile.am
@@ -24,9 +25,9 @@ prepare() {
 }
 
 build() {
-  [[ -d "${srcdir}"/build-${CARCH} ]] && rm -rf "${srcdir}"/build-${CARCH}
-  cp -R "${_realname}-${pkgver//\./_}" "${srcdir}"/build-${CARCH}
-  cd "${srcdir}"/build-${CARCH}
+  [[ -d "${srcdir}"/build-${MSYSTEM} ]] && rm -rf "${srcdir}"/build-${MSYSTEM}
+  cp -R "${_realname}-${pkgver//\./_}" "${srcdir}"/build-${MSYSTEM}
+  cd "${srcdir}"/build-${MSYSTEM}
 
   ./configure \
     --prefix=${MINGW_PREFIX} \
@@ -40,6 +41,6 @@ build() {
 }
 
 package() {
-  cd "${srcdir}"/build-${CARCH}
+  cd "${srcdir}"/build-${MSYSTEM}
   make install DESTDIR="${pkgdir}"
 }

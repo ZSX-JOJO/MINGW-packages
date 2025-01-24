@@ -3,13 +3,16 @@
 _realname=texlive-lang-french
 pkgbase=mingw-w64-${_realname}
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
-pkgver=2021.20210906
-_revnr=${pkgver#2021.}
+pkgver=2023.20230404
+_revnr=${pkgver#2023.}
 pkgrel=1
 pkgdesc="TeX Live - French (mingw-w64)"
 license=('GPL')
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
+mingw_arch=('mingw64' 'ucrt64' 'clang64')
+msys2_references=(
+  'archlinux: texlive-langextra'
+)
 depends=(
     "${MINGW_PACKAGE_PREFIX}-texlive-core"
 )
@@ -24,8 +27,8 @@ source=("${_realname}-${_revnr}.tar.xz::https://github.com/msys2/msys2-texlive/r
     "${_realname}-extra-files.tar.xz::https://github.com/msys2/msys2-texlive/releases/download/${_revnr}/${_realname}-extra-files.tar.xz")
 options=('!emptydirs')
 sha256sums=(
-    "145aac3a32395b9bcb63cd7251799a956da26ac3bdd4d82231dca17f54731514"
-    "cbea2984f3d9aee6cafd53bb54b23b120065e8c4de7b72968d8b2be651bafb3c"
+    "18a1de0192787da207221553be2abb43350c56e18d0eaa12467b4aea2bfac457"
+    "1891d237fde7e7109ace5886657ecc8d5bbe808db621226b8303078e75855c3e"
 )
 
 build() {
