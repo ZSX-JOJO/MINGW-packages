@@ -3,50 +3,52 @@
 _realname=msmtp
 pkgbase="mingw-w64-${_realname}"
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}")
-pkgver=1.8.16
+pkgver=1.8.23
 pkgrel=1
 pkgdesc="An SMTP client (mingw-w64)"
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
-license=('GPL2+')
-url="https://msmtp.sourceforge.io/"
-makedepends=("${MINGW_PACKAGE_PREFIX}-pkg-config")
+mingw_arch=('mingw64' 'ucrt64' 'clang64')
+url="https://marlam.de/msmtp/"
+msys2_repository_url="https://github.com/marlam/msmtp"
+msys2_references=(
+  'archlinux: msmtp'
+  "cpe: cpe:2.3:a:marlam:msmtp"
+  "cpe: cpe:2.3:a:martin_lambers:msmtp"
+)
+license=('spdx:GPL-3.0-or-later')
+makedepends=("${MINGW_PACKAGE_PREFIX}-cc" "${MINGW_PACKAGE_PREFIX}-autotools")
 depends=("${MINGW_PACKAGE_PREFIX}-gettext"
          "${MINGW_PACKAGE_PREFIX}-gnutls"
          "${MINGW_PACKAGE_PREFIX}-gsasl"
-         "${MINGW_PACKAGE_PREFIX}-libffi"
-         "${MINGW_PACKAGE_PREFIX}-libidn"
+         "${MINGW_PACKAGE_PREFIX}-libsecret"
+         "${MINGW_PACKAGE_PREFIX}-libidn2"
          "${MINGW_PACKAGE_PREFIX}-libwinpthread")
-options=('strip')
-source=(https://marlam.de/msmtp/releases/${_realname}-${pkgver}.tar.xz{,.sig}
-        '0001-include-winsock2.patch')
-sha256sums=('c04b5d89f3df0dee9772f50197c2602c97c5cdb439b6af539c37bf81b20f47d8'
-            'SKIP'
-            '3729fc8d9a11370324561a76cafe09035391e48c9a55876d1aaa5077944ebf8d')
-validpgpkeys=('2F61B4828BBA779AECB3F32703A2A4AB1E32FD34')
+source=(https://marlam.de/msmtp/releases/${_realname}-${pkgver}.tar.xz{,.sig})
+sha256sums=('cf04c16b099b3d414db4b5b93fc5ed9d46aad564c81a352aa107a33964c356b8'
+            'SKIP')
+validpgpkeys=('2F61B4828BBA779AECB3F32703A2A4AB1E32FD34') # Martin Lambers <marlam@marlam.de>
 
 prepare () {
-  cd ${srcdir}/${_realname}-${pkgver}
+  cd "${srcdir}"/${_realname}-${pkgver}
 
-  patch -p1 -i "${srcdir}/0001-include-winsock2.patch"
-  #autoreconf -fiv
 }
 
 build() {
-  [[ -d ${srcdir}/build-${MINGW_CHOST} ]] && rm -rf ${srcdir}/build-${MINGW_CHOST}
-  mkdir build-${MINGW_CHOST} && cd ${srcdir}/build-${MINGW_CHOST}
+  mkdir -p "${srcdir}/build-${MSYSTEM}" && cd "${srcdir}/build-${MSYSTEM}"
+
+  LDFLAGS+=" -lpthread" \
   ../${_realname}-${pkgver}/configure \
     --build=${MINGW_CHOST} \
     --host=${MINGW_CHOST} \
     --prefix=${MINGW_PREFIX}
 
   sed -i 's/-R\/mingw..\/lib//' src/Makefile
-  touch ${srcdir}/${_realname}-${pkgver}/src/*.c
+  touch "${srcdir}"/${_realname}-${pkgver}/src/*.c
   make
 }
 
 package() {
-  cd ${srcdir}/build-${MINGW_CHOST}
+  cd "${srcdir}/build-${MSYSTEM}"
   make DESTDIR="${pkgdir}" install
-  install -Dm0644 ${srcdir}/${_realname}-${pkgver}/COPYING ${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/COPYING
+  install -Dm0644 "${srcdir}"/${_realname}-${pkgver}/COPYING "${pkgdir}"${MINGW_PREFIX}/share/licenses/${_realname}/COPYING
 }

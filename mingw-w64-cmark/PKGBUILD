@@ -3,42 +3,45 @@
 _realname=cmark
 pkgbase=mingw-w64-${_realname}
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}")
-pkgver=0.30.2
+pkgver=0.31.1
 pkgrel=1
 pkgdesc="CommonMark parsing and rendering library and program in C (mingw-w64)"
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
-url="https://github.com/jgm/${_realname}"
-license=('custom:BSD2')
-makedepends=("${MINGW_PACKAGE_PREFIX}-cmake" "${MINGW_PACKAGE_PREFIX}-python3")
-source=("${_realname}-${pkgver}.tar.gz::https://github.com/jgm/${_realname}/archive/${pkgver}.tar.gz")
-sha512sums=('aaa9b2103cf89c522f9b42a2b43c07ecf75e07eb42214c0be5de17682ea1faf9c85e3dd28fe91d446b69a34f9980bcab6e276a99b42540c40c9ee1481b3a0d17')
+mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clangarm64')
+url="https://github.com/commonmark/cmark"
+license=('spdx:BSD-2-Clause')
+makedepends=(
+  "${MINGW_PACKAGE_PREFIX}-cc"
+  "${MINGW_PACKAGE_PREFIX}-cmake"
+  "${MINGW_PACKAGE_PREFIX}-ninja"
+  "${MINGW_PACKAGE_PREFIX}-python"
+)
+source=("${_realname}-${pkgver}.tar.gz::https://github.com/commonmark/cmark/archive/${pkgver}.tar.gz")
+sha512sums=('3b4f8b47d8ea270078ab986aa22fc32b227786459bd33c7225aac578d8dd014e3d8788a6add60ea10571fdb4c7dc6a1ece960815a02f04f153b1775c73ccff8f')
 
 build() {
-  cd "${srcdir}"/${_realname}-${pkgver}
-  [[ -d "${srcdir}"/build-${CARCH} ]] && rm -rf "${srcdir}"/build-${CARCH}
-  mkdir -p "${srcdir}"/build-${CARCH} && cd "${srcdir}"/build-${CARCH}
-
-  declare -a extra_config
+  declare -a _extra_config
   if check_option "debug" "n"; then
-    extra_config+=("-DCMAKE_BUILD_TYPE=Release")
+    _extra_config+=("-DCMAKE_BUILD_TYPE=Release")
   else
-    extra_config+=("-DCMAKE_BUILD_TYPE=Debug")
+    _extra_config+=("-DCMAKE_BUILD_TYPE=Debug")
   fi
 
+  mkdir -p "${srcdir}/build-${MSYSTEM}" && cd "${srcdir}/build-${MSYSTEM}"
+
   MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
-    ${MINGW_PREFIX}/bin/cmake \
-      -G'MSYS Makefiles' \
-      -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
-      "${extra_config[@]}" \
+    "${MINGW_PREFIX}"/bin/cmake.exe \
+      -GNinja \
+      -DCMAKE_INSTALL_PREFIX="${MINGW_PREFIX}" \
+      "${_extra_config[@]}" \
       -DBUILD_SHARED_LIBS=ON \
       ../${_realname}-${pkgver}
 
-  make
+  "${MINGW_PREFIX}"/bin/cmake.exe --build .
 }
 
 package() {
-  cd "${srcdir}"/build-${CARCH}
-  make install DESTDIR="${pkgdir}"
-  install -D -m 644 "${srcdir}/${_realname}-${pkgver}/COPYING" "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/COPYING"
+  cd "${srcdir}/build-${MSYSTEM}"
+  DESTDIR="${pkgdir}" "${MINGW_PREFIX}"/bin/cmake.exe --install .
+  install -Dm644 "${srcdir}/${_realname}-${pkgver}/COPYING" "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/COPYING"
 }

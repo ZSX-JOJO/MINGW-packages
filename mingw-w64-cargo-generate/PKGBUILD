@@ -1,0 +1,62 @@
+# Maintainer: Konstantin Podsvirov <konstantin@podsvirov.pro>
+
+_realname=cargo-generate
+pkgbase=mingw-w64-${_realname}
+pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
+pkgver=0.22.1
+pkgrel=2
+pkgdesc="Use pre-existing git repositories as templates (mingw-w64)"
+arch=('any')
+mingw_arch=('mingw64' 'ucrt64' 'clang64' 'clangarm64')
+url="https://github.com/cargo-generate/cargo-generate"
+msys2_references=(
+  'archlinux: cargo-generate'
+  'purl: pkg:cargo/cargo-generate'
+)
+license=('spdx:MIT OR Apache-2.0')
+depends=("${MINGW_PACKAGE_PREFIX}-libgit2" "${MINGW_PACKAGE_PREFIX}-libssh2")
+makedepends=("${MINGW_PACKAGE_PREFIX}-rust"
+             "${MINGW_PACKAGE_PREFIX}-mdbook"
+             "${MINGW_PACKAGE_PREFIX}-pkgconf"
+             "${MINGW_PACKAGE_PREFIX}-openssl")
+source=("${url}/archive/v${pkgver}/${_realname}-${pkgver}.tar.gz"
+        "https://github.com/cargo-generate/cargo-generate/commit/be2237177ee7ae996e2991189b07a5d211cd0d01.patch")
+sha256sums=('f912f1c172a5a51ac7a693f44acaef99f5b9278723aa4daaeb96278807e025bd'
+            '1e3d113bb77975abe3984247219ddc3499c634f21e34b861181077e476efd50c')
+
+prepare() {
+  cd "${_realname}-${pkgver}"
+
+  # bump git2 crate
+  patch -Np1 -i ../be2237177ee7ae996e2991189b07a5d211cd0d01.patch
+
+  export LIBSSH2_SYS_USE_PKG_CONFIG=1
+  export LIBGIT2_NO_VENDOR=1
+  export OPENSSL_NO_VENDOR=1
+  cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')"
+}
+
+build() {
+  cd "${_realname}-${pkgver}"
+
+  cargo build --release --frozen
+
+  cd guide
+  mdbook build
+}
+
+check() {
+  cd "${_realname}-${pkgver}"
+
+  cargo test --release --locked
+}
+
+package() {
+  cd "${_realname}-${pkgver}"
+
+  install -Dm755 "target/release/${_realname}.exe" "${pkgdir}${MINGW_PREFIX}/bin/${_realname}.exe"
+  install -d "${pkgdir}${MINGW_PREFIX}/share/doc/${_realname}"
+  cp -a "guide/book" "${pkgdir}${MINGW_PREFIX}/share/doc/${_realname}/html"
+  install -Dm644 "LICENSE-MIT" "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE-MIT"
+  install -Dm644 "LICENSE-APACHE" "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE-APACHE"
+}

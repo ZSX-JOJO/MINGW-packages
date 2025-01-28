@@ -3,33 +3,30 @@
 _realname=pangomm
 pkgbase=mingw-w64-${_realname}-2.48
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}-2.48"
-pkgver=2.48.1
-pkgrel=3
-provides=("${MINGW_PACKAGE_PREFIX}-${_realname}248")
-conflicts=("${MINGW_PACKAGE_PREFIX}-${_realname}248")
-replaces=("${MINGW_PACKAGE_PREFIX}-${_realname}248")
+pkgver=2.56.1
+pkgrel=1
 pkgdesc="C++ bindings for Pango (V2.48) (mingw-w64)"
-url="https://www.gtkmm.org/"
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
-license=("LGPL")
+mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clangarm64')
+msys2_documentation_url='https://gnome.pages.gitlab.gnome.org/pangomm/'
+msys2_repository_url='https://gitlab.gnome.org/GNOME/pangomm'
+url='https://gtkmm.gnome.org/'
+license=('spdx:LGPL-2.1-or-later')
 depends=("${MINGW_PACKAGE_PREFIX}-cairomm-1.16"
+         "${MINGW_PACKAGE_PREFIX}-gcc-libs"
+         "${MINGW_PACKAGE_PREFIX}-glib2"
          "${MINGW_PACKAGE_PREFIX}-glibmm-2.68"
+         "${MINGW_PACKAGE_PREFIX}-libsigc++-3.0"
          "${MINGW_PACKAGE_PREFIX}-pango")
-makedepends=("${MINGW_PACKAGE_PREFIX}-meson"
-             "${MINGW_PACKAGE_PREFIX}-pkg-config")
-options=('strip' '!debug' 'staticlibs')
+makedepends=("${MINGW_PACKAGE_PREFIX}-cc"
+             "${MINGW_PACKAGE_PREFIX}-meson"
+             "${MINGW_PACKAGE_PREFIX}-ninja"
+             "${MINGW_PACKAGE_PREFIX}-pkgconf")
 source=("https://download.gnome.org/sources/${_realname}/${pkgver%.*}/${_realname}-${pkgver}.tar.xz")
-sha256sums=('776ad53e791e43106b7f40ff0834bee6e4eb1c6ad7cb6d215546f7a3df0edc4d')
-
-prepare() {
-  cd "${srcdir}/${_realname}-${pkgver}"
-
-}
+sha256sums=('539f5aa60e9bdc6b955bb448e2a62cc14562744df690258040fbb74bf885755d')
 
 build() {
-  [[ -d "${srcdir}/build-${MINGW_CHOST}" ]] && rm -rf "${srcdir}/build-${MINGW_CHOST}"
-  mkdir -p "${srcdir}/build-${MINGW_CHOST}" && cd "${srcdir}/build-${MINGW_CHOST}"
+  mkdir -p "build-${MSYSTEM}" && cd "build-${MSYSTEM}"
 
   declare -a _extra_config
   if check_option "debug" "n"; then
@@ -41,7 +38,7 @@ build() {
   CFLAGS+=" -Wno-attributes" \
   CXXFLAGS+=" -Wno-attributes" \
   MSYS2_ARG_CONV_EXCL="--prefix=" \
-  ${MINGW_PREFIX}/bin/meson.exe \
+  ${MINGW_PREFIX}/bin/meson.exe setup \
     --prefix="${MINGW_PREFIX}" \
     "${_extra_config[@]}" \
     --wrap-mode=nodownload \
@@ -55,12 +52,12 @@ build() {
 }
 
 check() {
-  cd "${srcdir}/build-${MINGW_CHOST}"
+  cd "${srcdir}/build-${MSYSTEM}"
   ${MINGW_PREFIX}/bin/meson.exe test || true
 }
 
 package() {
-  cd "${srcdir}/build-${MINGW_CHOST}"
+  cd "${srcdir}/build-${MSYSTEM}"
 
   DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/meson.exe install
 

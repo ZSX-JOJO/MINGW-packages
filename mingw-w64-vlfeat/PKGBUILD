@@ -7,11 +7,11 @@ pkgver=0.9.21
 pkgrel=3
 pkgdesc="The VLFeat open source library implements popular computer vision algorithms specializing in image understanding and local features extraction and matching. (mingw-w64)"
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
+mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64')
 license=(BSD)
 url="https://www.vlfeat.org/"
 depends=("${MINGW_PACKAGE_PREFIX}-gcc-libs")
-makedepends=("${MINGW_PACKAGE_PREFIX}-gcc")
+makedepends=("${MINGW_PACKAGE_PREFIX}-cc" "groff")
 source=("https://www.vlfeat.org/download/${_realname}-${pkgver}.tar.gz"
         "01-vlfeat-0.9.20-1-buildsys.mingw.patch"
         "02-Makefile-fix-arch-detection.patch"
@@ -25,7 +25,7 @@ sha256sums=('8cbf686fd008e3d119c3a0986ffd06e4c3d9448b6f4721a9cc9bb4964c82ff55'
 
 prepare() {
   # Replace minizip with external
-  cd ${srcdir}/${_realname}-${pkgver}
+  cd "${srcdir}"/${_realname}-${pkgver}
   patch -p1 -i "${srcdir}/01-vlfeat-0.9.20-1-buildsys.mingw.patch"
   patch -p1 -i "${srcdir}/02-Makefile-fix-arch-detection.patch"
 
@@ -36,11 +36,11 @@ prepare() {
 }
 
 build() {
-  cd ${srcdir}/${_realname}-${pkgver}
+  cd "${srcdir}"/${_realname}-${pkgver}
   make all
 }
 
 package() {
-  cd ${srcdir}/${_realname}-${pkgver}
+  cd "${srcdir}"/${_realname}-${pkgver}
   make DESTDIR="${pkgdir}" prefix=${MINGW_PREFIX} install
 }

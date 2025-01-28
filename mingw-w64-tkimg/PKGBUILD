@@ -9,7 +9,7 @@ pkgrel=2
 pkgdesc="Adds support to Tk for many other Image formats: BMP, XBM, XPM, GIF, PNG, JPEG, TIFF and postscript (mingw-64)"
 url="https://tkimg.sourceforge.io/"
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
+mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64')
 license=('BSD')
 depends=(#"${MINGW_PACKAGE_PREFIX}-jbigkit"
          "${MINGW_PACKAGE_PREFIX}-libjpeg"
@@ -18,7 +18,10 @@ depends=(#"${MINGW_PACKAGE_PREFIX}-jbigkit"
          "${MINGW_PACKAGE_PREFIX}-tk"
          "${MINGW_PACKAGE_PREFIX}-zlib")
 # Uses dtplite for generating the man pages:
-makedepends=("${MINGW_PACKAGE_PREFIX}-tcllib")
+makedepends=(
+  "${MINGW_PACKAGE_PREFIX}-tcllib"
+  "${MINGW_PACKAGE_PREFIX}-autotools"
+  "${MINGW_PACKAGE_PREFIX}-cc")
 source=("https://downloads.sourceforge.net/tkimg/Img-${pkgver}-Source.tar.gz"
         001-compile-tif_jbig.patch
         002-dtplite_tcl.patch
@@ -42,8 +45,8 @@ build() {
     extra_config+=( --enable-symbols )
   fi
 
-  mkdir -p "${srcdir}/build-${CARCH}"
-  cd "${srcdir}/build-${CARCH}"
+  mkdir -p "${srcdir}/build-${MSYSTEM}"
+  cd "${srcdir}/build-${MSYSTEM}"
 
   ../Img-${pkgver}/configure \
     --build=${MINGW_CHOST} \
@@ -57,7 +60,7 @@ build() {
 }
 
 package() {
-  cd "${srcdir}/build-${CARCH}"
+  cd "${srcdir}/build-${MSYSTEM}"
   make INSTALL_ROOT="${pkgdir}" install
-  rm -f ${pkgdir}/${MINGW_PREFIX}/lib/*.sh
+  rm -f "${pkgdir}"/${MINGW_PREFIX}/lib/*.sh
 }

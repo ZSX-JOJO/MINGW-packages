@@ -3,25 +3,37 @@
 _realname=jsoncpp
 pkgbase=mingw-w64-${_realname}
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
-pkgver=1.9.4
-pkgrel=1
+pkgver=1.9.6
+pkgrel=3
 pkgdesc="A C++ library for interacting with JSON (mingw-w64)"
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32' 'clangarm64')
+mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clangarm64')
 url="https://github.com/open-source-parsers/jsoncpp"
-license=('MIT')
-makedepends=("${MINGW_PACKAGE_PREFIX}-gcc"
+msys2_references=(
+  "cpe: cpe:2.3:a:jsoncpp_project:jsoncpp"
+)
+license=('spdx:MIT')
+depends=("${MINGW_PACKAGE_PREFIX}-gcc-libs")
+makedepends=("${MINGW_PACKAGE_PREFIX}-cc"
              "${MINGW_PACKAGE_PREFIX}-cmake"
-             "${MINGW_PACKAGE_PREFIX}-python")
-options=('staticlibs' '!strip' '!buildflags')
+             "${MINGW_PACKAGE_PREFIX}-ninja")
 source=("${_realname}-${pkgver}.tar.gz"::"https://github.com/open-source-parsers/jsoncpp/archive/${pkgver}.tar.gz"
-        001-library-name.patch)
-sha256sums=('e34a628a8142643b976c7233ef381457efad79468c67cb1ae0b83a33d7493999'
-            '72396ec75ec0013419c127fd0aef15149b150415658b8682fdedb91046c304b2')
+        "0001-static-lib-name.patch")
+sha256sums=('f93b6dd7ce796b13d02c108bc9f79812245a82e577581c4c9aabe57075c90ea2'
+            '692d7ae7f102644aaf7a41f1f9eafd7b3eca45febd6bde8675afdabca85adb4f')
+
+apply_patch_with_msg() {
+  for _patch in "$@"
+  do
+    msg2 "Applying ${_patch}"
+    patch -Nbp1 -i "${srcdir}/${_patch}"
+  done
+}
 
 prepare() {
   cd "${srcdir}/${_realname}-${pkgver}"
-  patch -p1 -i "${srcdir}/001-library-name.patch"
+  apply_patch_with_msg \
+    0001-static-lib-name.patch
 }
 
 build() {
@@ -32,39 +44,23 @@ build() {
     extra_config+=("-DCMAKE_BUILD_TYPE=Debug")
   fi
 
-  [[ -d "${srcdir}/build-${MINGW_CHOST}-static" ]] && rm -rf "${srcdir}/build-${MINGW_CHOST}-static"
-  mkdir -p "${srcdir}/build-${MINGW_CHOST}-static" && cd "${srcdir}/build-${MINGW_CHOST}-static"
-
   MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
-  ${MINGW_PREFIX}/bin/cmake \
-    -G"MSYS Makefiles" \
+  cmake \
+    -GNinja \
     -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
+    -DCMAKE_DLL_NAME_WITH_SOVERSION=ON \
     -DJSONCPP_WITH_CMAKE_PACKAGE=ON \
-    -DBUILD_SHARED_LIBS=OFF \
-    ${extra_config} \
-    ../${_realname}-${pkgver}
+    -DBUILD_OBJECT_LIBS=OFF \
+    -DJSONCPP_WITH_TESTS=OFF \
+    ${extra_config[@]} \
+    -S ${_realname}-${pkgver} \
+    -B build-${MSYSTEM}
 
-  make
-
-  [[ -d "${srcdir}/build-${MINGW_CHOST}-shared" ]] && rm -rf "${srcdir}/build-${MINGW_CHOST}-shared"
-  mkdir -p "${srcdir}/build-${MINGW_CHOST}-shared" && cd "${srcdir}/build-${MINGW_CHOST}-shared"
-
-  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
-  ${MINGW_PREFIX}/bin/cmake \
-    -G"MSYS Makefiles" \
-    -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
-    -DJSONCPP_WITH_CMAKE_PACKAGE=ON \
-    -DBUILD_SHARED_LIBS=ON \
-    ${extra_config} \
-    ../${_realname}-${pkgver}
-
-  make
+  cmake --build build-${MSYSTEM}
 }
 
 package() {
-  cd "${srcdir}/build-${MINGW_CHOST}-static"
-  make DESTDIR=${pkgdir} install
+  DESTDIR="${pkgdir}" cmake --install build-${MSYSTEM}
 
-  cd "${srcdir}/build-${MINGW_CHOST}-shared"
-  make DESTDIR=${pkgdir} install
+  install -Dm644 "${_realname}-${pkgver}/LICENSE" "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE"
 }

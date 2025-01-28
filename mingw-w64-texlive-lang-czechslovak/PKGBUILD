@@ -3,13 +3,13 @@
 _realname=texlive-lang-czechslovak
 pkgbase=mingw-w64-${_realname}
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
-pkgver=2021.20210906
-_revnr=${pkgver#2021.}
+pkgver=2023.20230404
+_revnr=${pkgver#2023.}
 pkgrel=1
 pkgdesc="TeX Live - Czech/Slovak (mingw-w64)"
 license=('GPL')
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
+mingw_arch=('mingw64' 'ucrt64' 'clang64')
 depends=(
     "${MINGW_PACKAGE_PREFIX}-texlive-core"
 )
@@ -24,8 +24,8 @@ source=("${_realname}-${_revnr}.tar.xz::https://github.com/msys2/msys2-texlive/r
     "${_realname}-extra-files.tar.xz::https://github.com/msys2/msys2-texlive/releases/download/${_revnr}/${_realname}-extra-files.tar.xz")
 options=('!emptydirs')
 sha256sums=(
-    "e2db633193293783a076b76bcb08487927fc4818800c4400c4bb4d9e44213a91"
-    "39ad9b0c6521255e45e3255afd16b3e132407f8cc2ecf012e5613b162cf1e276"
+    "245ec9206ff1301cbd6e662caaea27799fbf74c126d0f5409c1ab4a41ef4a3ae"
+    "c6fddfc51d744c0185132108146d7cb1c12db7ec8f6d19e64ccfea7e1cec466a"
 )
 
 build() {
