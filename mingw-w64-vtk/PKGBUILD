@@ -4,80 +4,132 @@
 _realname=vtk
 pkgbase="mingw-w64-${_realname}"
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
-pkgver=8.2.0
-pkgrel=10
+pkgver=9.4.1
+pkgrel=3
 pkgdesc="A software system for 3D computer graphics, image processing and visualization (mingw-w64)"
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64')
+mingw_arch=('mingw64' 'ucrt64' 'clang64' 'clangarm64')
 url="https://www.vtk.org/"
-license=("BSD")
+msys2_repository_url="https://gitlab.kitware.com/vtk/vtk"
+msys2_references=(
+  'archlinux: vtk'
+  "cpe: cpe:/a:vtk:vtk"
+)
+license=("spdx:BSD-3-Clause")
 depends=("${MINGW_PACKAGE_PREFIX}-gcc-libs"
          "${MINGW_PACKAGE_PREFIX}-double-conversion"
          "${MINGW_PACKAGE_PREFIX}-expat"
-         "${MINGW_PACKAGE_PREFIX}-ffmpeg"
-         "${MINGW_PACKAGE_PREFIX}-fontconfig"
+         "${MINGW_PACKAGE_PREFIX}-fmt"
          "${MINGW_PACKAGE_PREFIX}-freetype"
-         "${MINGW_PACKAGE_PREFIX}-hdf5"
+         "${MINGW_PACKAGE_PREFIX}-glew"
+         "${MINGW_PACKAGE_PREFIX}-tbb"
          "${MINGW_PACKAGE_PREFIX}-jsoncpp"
-         "${MINGW_PACKAGE_PREFIX}-libjpeg"
          "${MINGW_PACKAGE_PREFIX}-libharu"
-         "${MINGW_PACKAGE_PREFIX}-libpng"
-         "${MINGW_PACKAGE_PREFIX}-libogg"
-         "${MINGW_PACKAGE_PREFIX}-libtheora"
+         "${MINGW_PACKAGE_PREFIX}-libjpeg"
          "${MINGW_PACKAGE_PREFIX}-libtiff"
-         "${MINGW_PACKAGE_PREFIX}-libxml2"
+         "${MINGW_PACKAGE_PREFIX}-libwinpthread-git"
          "${MINGW_PACKAGE_PREFIX}-lz4"
+         "${MINGW_PACKAGE_PREFIX}-omp"
+         "${MINGW_PACKAGE_PREFIX}-openxr-sdk"
          "${MINGW_PACKAGE_PREFIX}-pugixml"
-         "${MINGW_PACKAGE_PREFIX}-zlib"
-         $([[ ${MINGW_PACKAGE_PREFIX} == *-clang-* ]] || echo "${MINGW_PACKAGE_PREFIX}-intel-tbb")
-         )
-makedepends=("${MINGW_PACKAGE_PREFIX}-cmake"
+         $([[ ${MSYSTEM} == MINGW64 ]] || echo "${MINGW_PACKAGE_PREFIX}-verdict")
+         "${MINGW_PACKAGE_PREFIX}-xz"
+         "${MINGW_PACKAGE_PREFIX}-zlib")
+makedepends=("${MINGW_PACKAGE_PREFIX}-cc"
+             "${MINGW_PACKAGE_PREFIX}-cmake"
              "${MINGW_PACKAGE_PREFIX}-ninja"
+             "${MINGW_PACKAGE_PREFIX}-adios2"
+             "${MINGW_PACKAGE_PREFIX}-alembic"
+             $([[ ${MSYSTEM} == MINGW64 ]] || echo "${MINGW_PACKAGE_PREFIX}-anari-sdk")
              "${MINGW_PACKAGE_PREFIX}-boost"
+             "${MINGW_PACKAGE_PREFIX}-cgns"
+             "${MINGW_PACKAGE_PREFIX}-cli11"
+             "${MINGW_PACKAGE_PREFIX}-eigen3"
+             "${MINGW_PACKAGE_PREFIX}-fast_float"
+             "${MINGW_PACKAGE_PREFIX}-ffmpeg"
+             "${MINGW_PACKAGE_PREFIX}-fontconfig"
+             "${MINGW_PACKAGE_PREFIX}-gdal"
+             "${MINGW_PACKAGE_PREFIX}-gl2ps"
+             "${MINGW_PACKAGE_PREFIX}-hdf5"
+             "${MINGW_PACKAGE_PREFIX}-liblas"
              "${MINGW_PACKAGE_PREFIX}-libmariadbclient"
+             "${MINGW_PACKAGE_PREFIX}-libpng"
+             "${MINGW_PACKAGE_PREFIX}-libogg"
+             "${MINGW_PACKAGE_PREFIX}-libtheora"
+             "${MINGW_PACKAGE_PREFIX}-libxml2"
+             "${MINGW_PACKAGE_PREFIX}-netcdf"
+             "${MINGW_PACKAGE_PREFIX}-openslide"
+             "${MINGW_PACKAGE_PREFIX}-opencascade"
+             "${MINGW_PACKAGE_PREFIX}-openturns"
+             "${MINGW_PACKAGE_PREFIX}-openvdb"
+             "${MINGW_PACKAGE_PREFIX}-openvr"
+             "${MINGW_PACKAGE_PREFIX}-pdal"
+             # "${MINGW_PACKAGE_PREFIX}-pegtl" https://gitlab.kitware.com/vtk/vtk/-/issues/18151
              "${MINGW_PACKAGE_PREFIX}-postgresql"
+             "${MINGW_PACKAGE_PREFIX}-proj"
              "${MINGW_PACKAGE_PREFIX}-python"
-             "${MINGW_PACKAGE_PREFIX}-tk"
-             "${MINGW_PACKAGE_PREFIX}-qt5-base"
-             "${MINGW_PACKAGE_PREFIX}-qt5-winextras"
-             "${MINGW_PACKAGE_PREFIX}-qt5-tools"
-             $([[ ${MSYSTEM} == MINGW* ]] && echo "${MINGW_PACKAGE_PREFIX}-gdal")
+             "${MINGW_PACKAGE_PREFIX}-qt6-declarative"
+             "${MINGW_PACKAGE_PREFIX}-sqlite3"
+             # "${MINGW_PACKAGE_PREFIX}-tk"
+             "${MINGW_PACKAGE_PREFIX}-unixodbc"
+             "${MINGW_PACKAGE_PREFIX}-utf8cpp"
              )
-optdepends=("${MINGW_PACKAGE_PREFIX}-boost: InfovisBoost and InfovisBoostGraphAlgorithms modules"
-            "${MINGW_PACKAGE_PREFIX}-gdal"
-            "${MINGW_PACKAGE_PREFIX}-libmariadbclient: interface to MariaDB"
-            "${MINGW_PACKAGE_PREFIX}-postgresql: interface to PostgreSQL"
+optdepends=("${MINGW_PACKAGE_PREFIX}-adios2: I/O ADIOS2"
+            "${MINGW_PACKAGE_PREFIX}-alembic: I/O Alembic"
+            "${MINGW_PACKAGE_PREFIX}-boost-libs: InfovisBoost and InfovisBoostGraphAlgorithms modules"
+            "${MINGW_PACKAGE_PREFIX}-cgns: CGNS Reader"
+            "${MINGW_PACKAGE_PREFIX}-ffmpeg: I/O FFMPEG"
+            "${MINGW_PACKAGE_PREFIX}-fontconfig: Fontconfig Rendering"
+            "${MINGW_PACKAGE_PREFIX}-gdal: I/O GDAL"
+            "${MINGW_PACKAGE_PREFIX}-gl2ps: PS Rendering"
+            "${MINGW_PACKAGE_PREFIX}-hdf5: I/O HDF5"
+            "${MINGW_PACKAGE_PREFIX}-liblas: I/O LAS"
+            "${MINGW_PACKAGE_PREFIX}-libmariadbclient: I/O MySQL/MariaDB"
+            "${MINGW_PACKAGE_PREFIX}-libpng: I/O PNG Images"
+            "${MINGW_PACKAGE_PREFIX}-libogg: I/O OGG and Theora"
+            "${MINGW_PACKAGE_PREFIX}-libtheora: I/O OGG and Theora"
+            "${MINGW_PACKAGE_PREFIX}-libxml2: I/O Infovis"
+            "${MINGW_PACKAGE_PREFIX}-netcdf: I/O netCDF"
+            "${MINGW_PACKAGE_PREFIX}-opencascade: I/O OCCT"
+            "${MINGW_PACKAGE_PREFIX}-openslide: DomainsMicroscopy"
+            "${MINGW_PACKAGE_PREFIX}-openturns: OpenTURNS Filter"
+            "${MINGW_PACKAGE_PREFIX}-openvdb: I/O OpenVDB"
+            "${MINGW_PACKAGE_PREFIX}-openvr: OpenVR Rendering"
+            "${MINGW_PACKAGE_PREFIX}-pdal: I/O PDAL"
+            "${MINGW_PACKAGE_PREFIX}-postgresql: I/O PostgreSQL"
+            "${MINGW_PACKAGE_PREFIX}-proj: GEOVis"
             "${MINGW_PACKAGE_PREFIX}-python: Python bindings"
             "${MINGW_PACKAGE_PREFIX}-python-matplotlib: Matplotlib renderer"
-            "${MINGW_PACKAGE_PREFIX}-tk: TCL bindings, Python Tk widgets"
-            "${MINGW_PACKAGE_PREFIX}-qt-base"
-            "${MINGW_PACKAGE_PREFIX}-qt-winextras")
+            "${MINGW_PACKAGE_PREFIX}-qt6-base: Qt Rendering"
+            "${MINGW_PACKAGE_PREFIX}-qt6-declarative: Qt Qml plugin"
+            "${MINGW_PACKAGE_PREFIX}-sqlite3: I/O SQL"
+            # "${MINGW_PACKAGE_PREFIX}-tk: TCL bindings, Python Tk widgets"
+            "${MINGW_PACKAGE_PREFIX}-unixodbc")
+if [[ ${MSYSTEM} != MINGW64 ]]; then
+  optdepends+=("${MINGW_PACKAGE_PREFIX}-anari-sdk: ANARI Rendering")
+fi
 source=(https://www.vtk.org/files/release/${pkgver%.*}/VTK-${pkgver}.tar.gz
-        "001-vtk-mingw-w64.patch"
-        "004-fix-linking-rendering-tk.patch"
-        "005-remove-bogus-stdint-check.patch"
-        "006-win7-defines-guard.patch"
-        "007-fix-linking-movie.patch"
-        "008-fix-python-modules-path.patch"
-        "020-python38-compat.patch"
-        "030-pugixml.patch"
-        "031-fno-common.patch"
-        "032-freetype-2.10.3-provide-FT_CALLBACK_DEF.patch"
-        "033-qt-5.15.patch"
-        "034-no-dllexport-with-delete.patch")
-sha256sums=('34c3dc775261be5e45a8049155f7228b6bd668106c72a3c435d95730d17d57bb'
-            'db3163012fc7d90f6ffd8300a7a306a609e7c69a88a1dcfb9cb5b5df4391e3ad'
-            '7f428a9c15b2dfc23fff2a19a11c48a628c9b52f82ec0d1dca37d0a5cffc9aef'
-            '769e28e106e612671433eb2f84ab6c0c9ef676109d690f6fe330641631c1fd2b'
-            '087d570104d2ae7f00437897e88225a1eb904b125e3a27bb9392ddf8ef068f6c'
-            'ec39407b6174c9b1326389b4badf1c0c377d74a6dd2c53caf983613fafe43c81'
-            'b6d6f4de0e58251843dec3dfad0ae5d5308c66ab8e55a56eeb3855cd699b02f3'
-            '1d9a3227feb50d08cb507d2a750b480f15eb1819f15c5b88474ba944c51f256a'
-            'cbcc8a0c81450e015c2ce4035f2f128956d20a22be581199446c4a72c0396190'
-            'a4597f0410bea856b06d023d9db7d2661b505eec110f4beccc155f6aa2c593f7'
-            'aa43d6b702e3e1bca2cb8560c1c7e6ce5681cef8a89e9b6442f8037bc295c21c'
-            'de1d2088c54bc7fdd494cb8a90464d2f53dc7cabddcd0415d9fb8cc4de448d0e'
-            '902ec3d23551de899a0682af88acc61257242fb5f474470884c3468d86a0d9f8')
+        "001-no-exact-version-for-fast_float.patch"
+        "002-llvm-19-compatibility.patch"
+        "003-fix-build-with-fmt-11.patch"
+        "004-accept-future-versions-of-boost-and-occ.patch"
+        "005-remove-unused-method-from-mir-tables.patch"
+        "006-fix-compile-error-for-contour-tree-print.patch"
+        "007-dll-export-some-functions.patch"
+        "008-update-to-diy-3.6.0.patch"
+        "009-diy-3-compatibility.patch"
+        "011-anari-integer-types.patch")
+sha256sums=('c253b0c8d002aaf98871c6d0cb76afc4936c301b72358a08d5f3f72ef8bc4529'
+            '411b0521fcd2864acae0af20ba6334f69f7c605c9e31996529f64aa749d61065'
+            '410ddfbb2acb66746771a0e1f3ad81230904f712729af29cd26e8aaaa19dc48e'
+            '2d1795111b410e0fbb8e7b08fab2e83e37e74ca0d7fd6685d435d4b27f355b87'
+            'a44b3ba4bdc02be4767ff48b8a7fd4206a53756a881421fca99f538b08a7b48c'
+            '66e3ac19197fb9f6f49dc98a746919ed025619ab8dae433d153c22ca595d92bc'
+            'ace675cf8a9081532756b66d4f1ca1b03b12dad719b79e8cfa60ee6d60e2eeaf'
+            '6cc0c44b2cb9693b8ae101fdde186561633fc6e6629c6e797231331895baa5df'
+            '7602c7b4afa61f57f27022d4ea015c6e3c1d4ab8df5907ca828e08bb48c26b20'
+            '19ffd04b06b4c3c0c3f0b1b375cbac956191d4b7d3fa1066dc62bbfe78d69908'
+            'd76aa1788bbe2dd14390d4c7a4e65bcd652e4521324a7982ef7ead2306c82436')
 
 # Helper macros to help make tasks easier #
 apply_patch_with_msg() {
@@ -92,125 +144,91 @@ prepare() {
   cd "${srcdir}/${_realname}-${pkgver}"
 
   apply_patch_with_msg \
-    001-vtk-mingw-w64.patch \
-    004-fix-linking-rendering-tk.patch
-  # it will find stdint from msys2-runtime-devel, but that's useless
-  apply_patch_with_msg \
-    005-remove-bogus-stdint-check.patch
-  apply_patch_with_msg \
-    006-win7-defines-guard.patch \
-    007-fix-linking-movie.patch \
-    008-fix-python-modules-path.patch \
-    020-python38-compat.patch \
-    030-pugixml.patch \
-    031-fno-common.patch \
-    032-freetype-2.10.3-provide-FT_CALLBACK_DEF.patch \
-    033-qt-5.15.patch \
-    034-no-dllexport-with-delete.patch
+    001-no-exact-version-for-fast_float.patch \
+    002-llvm-19-compatibility.patch \
+    003-fix-build-with-fmt-11.patch \
+    004-accept-future-versions-of-boost-and-occ.patch \
+    005-remove-unused-method-from-mir-tables.patch \
+    006-fix-compile-error-for-contour-tree-print.patch \
+    008-update-to-diy-3.6.0.patch \
+    009-diy-3-compatibility.patch \
+    011-anari-integer-types.patch
+
+  # Succeeds with Clang but fails with GCC!
+  if [[ ${MINGW_PACKAGE_PREFIX} == *-clang-* ]]; then
+    apply_patch_with_msg \
+      007-dll-export-some-functions.patch
+  fi
 }
 
 build() {
+  mkdir -p "${srcdir}"/build-${MSYSTEM} && cd "${srcdir}"/build-${MSYSTEM}
+
+  declare -a _extra_config
+  if check_option "debug" "n"; then
+    _extra_config+=("-DCMAKE_BUILD_TYPE=Release")
+  else
+    _extra_config+=("-DCMAKE_BUILD_TYPE=Debug")
+  fi
+
+  if [[ ${MSYSTEM} == MINGW64 ]]; then
+    _extra_config+=("-DVTK_MODULE_ENABLE_VTK_RenderingAnari=NO"
+                    "-DVTK_MODULE_USE_EXTERNAL_VTK_verdict=OFF")
+  fi
+
   CFLAGS+=" ${CPPFLAGS}"
-  CXXFLAGS+=" ${CPPFLAGS} -std=gnu++11"
-  [[ "$CARCH" = 'i686' ]] && {
-    _cmakeopts=('-DVTK_USE_64BIT_IDS=OFF')
-  }
-  [[ "$CARCH" = 'x86_64' ]] && {
-    _cmakeopts=('-DVTK_USE_64BIT_IDS=ON')
-  }
+  CXXFLAGS+=" ${CPPFLAGS} -D_USE_MATH_DEFINES -w"
 
-  if [[ ${MINGW_PACKAGE_PREFIX} != *-clang-* ]]; then
-    _default_smp=TBB
-  else
-    _default_smp=STDThread
-  fi
-
-  if [[ ${MSYSTEM} == MINGW* ]]; then
-    _enable_gdal=ON
-  else
-    _enable_gdal=OFF
-  fi
-
-  [[ -d ${srcdir}/build-${MSYSTEM} ]] && rm -rf ${srcdir}/build-${MSYSTEM}
-  mkdir -p ${srcdir}/build-${MSYSTEM} && cd ${srcdir}/build-${MSYSTEM}
-
-  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=;-DVTK_INSTALL_QT_PLUGIN_DIR=;-DVTK_INSTALL_TCL_DIR=" \
-  cmake \
+  MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
+  ${MINGW_PREFIX}/bin/cmake \
     -Wno-dev \
     -G"Ninja" \
     -DCMAKE_INSTALL_PREFIX="${MINGW_PREFIX}" \
-    -DVTK_INSTALL_QT_PLUGIN_DIR="${MINGW_PREFIX}/share/qt5/plugins/designer" \
-    -DVTK_INSTALL_TCL_DIR="${MINGW_PREFIX}/lib/vtk-${pkgver%.*}" \
-    -DBUILD_DOCUMENTATION=OFF \
-    -DBUILD_EXAMPLES=OFF \
-    -DBUILD_TESTING=OFF \
-    -DVTK_LEGACY_REMOVE=OFF \
-    -DVTK_Group_Imaging=ON \
-    -DVTK_Group_MPI=OFF \
-    -DVTK_Group_Qt=ON \
-    -DVTK_Group_Rendering=ON \
-    -DVTK_Group_StandAlone=ON \
-    -DVTK_Group_Tk=ON \
-    -DVTK_Group_Views=ON \
-    -DVTK_Group_Web=OFF \
-    -DVTK_USE_SYSTEM_DOUBLECONVERSION=ON \
-    -DVTK_USE_SYSTEM_EXPAT=ON \
-    -DVTK_USE_SYSTEM_FREETYPE=ON \
-    -DVTK_USE_SYSTEM_HDF5=ON \
-    -DVTK_USE_SYSTEM_JPEG=ON \
-    -DVTK_USE_SYSTEM_JSONCPP=ON \
-    -DVTK_USE_SYSTEM_LIBPROJ=OFF \
-    -DVTK_USE_SYSTEM_LIBHARU=OFF \
-    -DVTK_USE_SYSTEM_LIBXML2=ON \
-    -DVTK_USE_SYSTEM_LZ4=ON \
-    -DVTK_USE_SYSTEM_NETCDF=OFF \
-    -DVTK_USE_SYSTEM_OGG=ON \
-    -DVTK_USE_SYSTEM_PUGIXML=ON \
-    -DVTK_USE_SYSTEM_THEORA=ON \
-    -DVTK_USE_SYSTEM_PNG=ON \
-    -DVTK_USE_SYSTEM_TIFF=ON \
-    -DVTK_USE_SYSTEM_ZLIB=ON \
-    -DVTK_USE_VIDEO_FOR_WINDOWS=ON \
-    -DModule_vtkIOFFMPEG=ON \
-    -DModule_vtkIOMySQL=ON \
-    -DMYSQL_INCLUDE_DIRECTORIES="${MINGW_PREFIX}/include/mariadb" \
-    -DMYSQL_LIBRARY="${MINGW_PREFIX}/lib/libmariadb.dll.a" \
-    -DModule_vtkInfovisBoost=ON \
-    -DModule_vtkInfovisBoostGraphAlgorithms=ON \
-    -DModule_vtkIOGDAL=${_enable_gdal} \
-    -DModule_vtkIOODBC=OFF \
-    -DModule_vtkIOPostgreSQL=ON \
-    -DModule_vtkPythonInterpreter=ON \
-    -DModule_vtkFiltersReebGraph=ON \
-    -DModule_vtkRenderingFreeTypeFontConfig=ON \
-    -DModule_vtkRenderingMatplotlib=ON \
+    -DCMAKE_INSTALL_LICENSEDIR=share/licenses/vtk \
+    -DBUILD_SHARED_LIBS=ON \
+    -DPython3_EXECUTABLE="${MINGW_PREFIX}/bin/python.exe" \
+    -DVTK_BUILD_TESTING=OFF \
+    -DVTK_VERSIONED_INSTALL=OFF \
+    -DVTK_BUILD_ALL_MODULES=ON \
+    -DVTK_GROUP_ENABLE_MPI=NO \
+    -DVTK_GROUP_ENABLE_Web=NO \
+    -DVTK_MODULE_ENABLE_VTK_FiltersParallelVerdict=WANT \
+    -DVTK_MODULE_ENABLE_VTK_FiltersTemporal=WANT \
+    -DVTK_MODULE_ENABLE_VTK_IOERF=WANT \
+    -DVTK_MODULE_ENABLE_VTK_IOFDS=WANT \
+    -DVTK_MODULE_ENABLE_VTK_RenderingOpenXRRemoting=NO \
+    -DVTK_MODULE_ENABLE_VTK_RenderingZSpace=NO \
+    -DVTK_USE_EXTERNAL=ON \
+    -DVTK_MODULE_USE_EXTERNAL_VTK_exprtk=OFF \
+    -DVTK_MODULE_USE_EXTERNAL_VTK_ioss=OFF \
+    -DVTK_MODULE_USE_EXTERNAL_VTK_pegtl=OFF \
+    -DVTK_MODULE_USE_EXTERNAL_VTK_token=OFF \
     -DVTK_WRAP_JAVA=OFF \
     -DVTK_WRAP_PYTHON=ON \
-    -DVTK_QT_VERSION=5 \
-    -DPYTHON_EXECUTABLE="${MINGW_PREFIX}/bin/python.exe" \
-    -DVTK_SMP_IMPLEMENTATION_TYPE=${_default_smp} \
-    -DCMAKE_RC_FLAGS=--use-temp-file \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DBUILD_SHARED_LIBS=ON \
-    ${_cmakeopts[@]} \
+    -DVTK_SMP_IMPLEMENTATION_TYPE=TBB \
+    -DVTK_SMP_ENABLE_SEQUENTIAL=ON \
+    -DVTK_SMP_ENABLE_STDTHREAD=ON \
+    -DVTK_SMP_ENABLE_OPENMP=ON \
+    -DVTK_USE_VIDEO_FOR_WINDOWS=ON \
+    -DVTK_ENABLE_OSPRAY=OFF \
+    -DVTK_ENABLE_REMOTE_MODULES=OFF \
+    -DVTK_IGNORE_CMAKE_CXX11_CHECKS=ON \
+    "${_extra_config[@]}" \
     ../${_realname}-${pkgver}
 
-  cmake --build .
+  ${MINGW_PREFIX}/bin/cmake --build .
 }
 
 package() {
   cd "${srcdir}/build-${MSYSTEM}"
-  DESTDIR="${pkgdir}" cmake --install .
+  DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake --install .
 
-  local PREFIX_DEPS=$(cygpath -am ${MINGW_PREFIX})
+  install -Dm644 "${srcdir}"/${_realname}-${pkgver}/Copyright.txt \
+    "${pkgdir}"${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE
 
-  pushd "${pkgdir}${MINGW_PREFIX}/lib/cmake/${_realname}-${pkgver%.*}" > /dev/null
-  sed -s 's|Qt5::|Qt5|g' -i ./VTKTargets*.cmake
-  sed -s "s|${PREFIX_DEPS}|\${_IMPORT_PREFIX}|g" -i ./VTKTargets.cmake
-  find . -name '*.cmake' -exec \
-    sed -s "s|${PREFIX_DEPS}|\${VTK_INSTALL_PREFIX}|g" -i {} \;
-  popd > /dev/null
+  # Remove third party CMake patching for older versions than ours
+  rm -rv "${pkgdir}"${MINGW_PREFIX}/lib/cmake/vtk/patches/3.{1{3,6,9},2{0,2,3}}
+  # … as well as duplicate copies
+  rm -rv "${pkgdir}"${MINGW_PREFIX}/lib/cmake/vtk/vtkm/{Find*.cmake,cmake/{Find*.cmake,3.15}}
 
-  install -Dm644 "${srcdir}/${_realname}-${pkgver}/Copyright.txt" \
-    "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/Copyright.txt"
 }

@@ -4,13 +4,17 @@
 _realname=mpv
 pkgbase="mingw-w64-${_realname}"
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
-pkgver=0.34.0
-pkgrel=1
+pkgver=0.39.0
+pkgrel=2
 pkgdesc="Video player based on MPlayer/mplayer2 (mingw-w64)"
 url="https://mpv.io/"
+msys2_repository_url="https://github.com/mpv-player/mpv"
+msys2_references=(
+  "cpe: cpe:/a:mpv:mpv"
+)
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64')
-license=('GPL')
+mingw_arch=('mingw64' 'ucrt64' 'clang64' 'clangarm64')
+license=('spdx:GPL-2.0-or-later')
 depends=("${MINGW_PACKAGE_PREFIX}-ffmpeg"
          "${MINGW_PACKAGE_PREFIX}-lcms2"
          "${MINGW_PACKAGE_PREFIX}-libarchive"
@@ -24,7 +28,7 @@ depends=("${MINGW_PACKAGE_PREFIX}-ffmpeg"
          "${MINGW_PACKAGE_PREFIX}-libjpeg-turbo"
          "${MINGW_PACKAGE_PREFIX}-libplacebo"
          "${MINGW_PACKAGE_PREFIX}-lua51"
-         "${MINGW_PACKAGE_PREFIX}-pkg-config"
+         "${MINGW_PACKAGE_PREFIX}-mujs"
          "${MINGW_PACKAGE_PREFIX}-rubberband"
          "${MINGW_PACKAGE_PREFIX}-shaderc"
          "${MINGW_PACKAGE_PREFIX}-spirv-cross"
@@ -32,70 +36,43 @@ depends=("${MINGW_PACKAGE_PREFIX}-ffmpeg"
          "${MINGW_PACKAGE_PREFIX}-vapoursynth"
          "${MINGW_PACKAGE_PREFIX}-vulkan"
          "winpty")
-makedepends=("${MINGW_PACKAGE_PREFIX}-python-docutils"
+makedepends=("${MINGW_PACKAGE_PREFIX}-cc"
+             "${MINGW_PACKAGE_PREFIX}-meson"
+             "${MINGW_PACKAGE_PREFIX}-ninja"
+             "${MINGW_PACKAGE_PREFIX}-pkgconf"
+             "${MINGW_PACKAGE_PREFIX}-python-docutils"
              "${MINGW_PACKAGE_PREFIX}-python-rst2pdf"
-             "${MINGW_PACKAGE_PREFIX}-vulkan-headers"
-             "perl"
-             "python")
-optdepends=("${MINGW_PACKAGE_PREFIX}-youtube-dl: for video-sharing websites playback")
+             "${MINGW_PACKAGE_PREFIX}-vulkan-headers")
+optdepends=("${MINGW_PACKAGE_PREFIX}-yt-dlp: for video-sharing websites playback")
 source=("${_realname}-${pkgver}.tar.gz"::"https://github.com/mpv-player/${_realname}/archive/v${pkgver}.tar.gz")
-sha256sums=('f654fb6275e5178f57e055d20918d7d34e19949bc98ebbf4a7371902e88ce309')
-
-# strip doesn't work well with the mpv.com wrapper, so strip manually instead
-options=(!strip !emptydirs)
+sha256sums=('2ca92437affb62c2b559b4419ea4785c70d023590500e8a52e95ea3ab4554683')
 
 prepare() {
   cd "${srcdir}/${_realname}-${pkgver}"
-
-  [[ -x ./waf ]] || /usr/bin/python ./bootstrap.py
-  sed -i 's:bin/env python$:bin/env python:' waf
 }
 
 build() {
-  cd "${srcdir}/${_realname}-${pkgver}"
+  mkdir -p build-${MSYSTEM} && cd build-${MSYSTEM}
 
-  DEST_OS=win32 \
-  TARGET=${MINGW_CHOST} \
-  PKG_CONFIG=${MINGW_PREFIX}/bin/pkg-config \
-  CC=gcc PERL=/usr/bin/perl \
-  AR=${MINGW_PREFIX}/bin/ar \
-  WINDRES=${MINGW_PREFIX}/bin/windres \
-  /usr/bin/python3 ./waf configure \
-    --prefix=${MINGW_PREFIX} \
-    --check-c-compiler=gcc \
-    --enable-libmpv-shared \
-    --enable-caca \
-    --enable-cdda \
-    --enable-d3d-hwaccel \
-    --enable-d3d11 \
-    --enable-dvdnav \
-    --disable-egl-angle \
-    --disable-egl-angle-lib \
-    --enable-jpeg \
-    --enable-lcms2 \
-    --enable-libarchive \
-    --enable-libbluray \
-    --enable-lua \
-    --enable-rubberband \
-    --enable-shaderc \
-    --enable-spirv-cross \
-    --enable-uchardet \
-    --enable-vapoursynth \
-    --enable-vulkan \
-    --out="${srcdir}/build-${MINGW_CHOST}"
+  MSYS2_ARG_CONV_EXCL="--prefix=" \
+    meson setup \
+      --prefix="${MINGW_PREFIX}" \
+      --wrap-mode=nodownload \
+      --buildtype=plain \
+      -Dcdda=enabled \
+      -Ddvdnav=enabled \
+      -Dlibmpv=true \
+      -Djavascript=enabled \
+      $([[ ${CARCH} == aarch64 ]] && echo "-Dgl=disabled") \
+      ../${_realname}-${pkgver}
 
-  /usr/bin/python ./waf build
+  meson compile
 }
 
 package() {
-  cd "${srcdir}/${_realname}-${pkgver}"
-  export PYTHON=${MINGW_PREFIX}/bin/python
-  /usr/bin/python ./waf install --destdir="${pkgdir}"
+  cd "${srcdir}/build-${MSYSTEM}"
 
-  # Strip binaries manually
-  ${MINGW_PREFIX}/bin/strip "${STRIP_BINARIES}" "${pkgdir}${MINGW_PREFIX}/bin/mpv.exe"
-  ${MINGW_PREFIX}/bin/strip "${STRIP_BINARIES}" "${pkgdir}${MINGW_PREFIX}/bin/mpv.com"
-  ${MINGW_PREFIX}/bin/strip "${STRIP_SHARED}" "${pkgdir}${MINGW_PREFIX}/bin/mpv-1.dll"
+  DESTDIR="${pkgdir}" meson install
 
   # Move encoding-profiles.conf to share/doc alongside the example .conf files.
   # mpv doesn't search /etc for configuration on MinGW.

@@ -3,32 +3,34 @@
 _realname=cgns
 pkgbase=mingw-w64-${_realname}
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
-pkgver=4.2.0
+pkgver=4.4.0
 pkgrel=1
 pkgdesc="CFD General Notation System library and tools (mingw-w64)"
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
+mingw_arch=('mingw64' 'ucrt64' 'clang64' 'clangarm64')
 url="https://cgns.github.io"
-license=('zlib')
-makedepends=("${MINGW_PACKAGE_PREFIX}-cmake"
+license=('spdx:Zlib')
+makedepends=("${MINGW_PACKAGE_PREFIX}-cc"
+             "${MINGW_PACKAGE_PREFIX}-cmake"
              "${MINGW_PACKAGE_PREFIX}-ninja")
 depends=("${MINGW_PACKAGE_PREFIX}-hdf5")
-source=("${_realname}-${pkgver}.tar.gz"::https://github.com/CGNS/CGNS/archive/v${pkgver}.tar.gz)
-sha256sums=('090ec6cb0916d90c16790183fc7c2bd2bd7e9a5e3764b36c8196ba37bf1dc817')
-
-prepare() {
-  cd ${srcdir}/${_realname}-${pkgver}
-}
+source=(https://github.com/CGNS/CGNS/archive/v${pkgver}/${_realname}-${pkgver}.tar.gz)
+sha256sums=('3b0615d1e6b566aa8772616ba5fd9ca4eca1a600720e36eadd914be348925fe2')
 
 build() {
-  [[ -d build-${MINGW_CHOST} ]] && rm -rf build-${MINGW_CHOST}
-  mkdir -p build-${MINGW_CHOST}
-  cd build-${MINGW_CHOST}
+  mkdir -p build-${MSYSTEM} && cd build-${MSYSTEM}
+
+  declare -a extra_config
+  if check_option "debug" "n"; then
+    extra_config+=("-DCMAKE_BUILD_TYPE=Release")
+  else
+    extra_config+=("-DCMAKE_BUILD_TYPE=Debug")
+  fi
 
   MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
   ${MINGW_PREFIX}/bin/cmake.exe \
-    -G "Ninja" \
-    -DCMAKE_BUILD_TYPE=Release \
+    -GNinja \
+    ${extra_config[@]} \
     -DCGNS_ENABLE_HDF5=ON \
     -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
     ../${_realname}-${pkgver}
@@ -37,10 +39,10 @@ build() {
 }
 
 package() {
-  cd build-${MINGW_CHOST}
-  DESTDIR=${pkgdir} ${MINGW_PREFIX}/bin/cmake.exe --build ./ --target install
+  cd build-${MSYSTEM}
+  DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake.exe --install .
 
   # license
-  install -D -m644 ${srcdir}/${_realname}-${pkgver}/license.txt \
-  ${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE
+  install -D -m644 "${srcdir}"/${_realname}-${pkgver}/license.txt \
+  "${pkgdir}"${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE
 }

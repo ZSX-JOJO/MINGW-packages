@@ -5,45 +5,66 @@
 _realname=inkscape
 pkgbase=mingw-w64-${_realname}
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
-pkgver=1.1.1
-pkgrel=2
+pkgver=1.4
+pkgrel=4
 pkgdesc="Vector graphics editor using the SVG file format (mingw-w64)"
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64')
-url="https://inkscape.sourceforge.io/"
-license=("GPL" "LGPL")
-makedepends=("${MINGW_PACKAGE_PREFIX}-cmake"
-             "${MINGW_PACKAGE_PREFIX}-gcc"
-             "${MINGW_PACKAGE_PREFIX}-gtest"
-             "${MINGW_PACKAGE_PREFIX}-pkg-config"
-             "${MINGW_PACKAGE_PREFIX}-boost"
+mingw_arch=('mingw64' 'ucrt64' 'clang64' 'clangarm64')
+url="https://inkscape.org/"
+msys2_repository_url="https://gitlab.com/inkscape/inkscape"
+msys2_references=(
+  "cpe: cpe:/a:inkscape:inkscape"
+)
+license=("spdx:GPL-2.0-or-later")
+makedepends=("${MINGW_PACKAGE_PREFIX}-cc"
+             "${MINGW_PACKAGE_PREFIX}-cmake"
              "${MINGW_PACKAGE_PREFIX}-ninja"
-             "intltool")
+             "${MINGW_PACKAGE_PREFIX}-boost"
+             "${MINGW_PACKAGE_PREFIX}-gettext-tools")
 depends=("${MINGW_PACKAGE_PREFIX}-aspell"
-         "${MINGW_PACKAGE_PREFIX}-double-conversion"
+         "${MINGW_PACKAGE_PREFIX}-atkmm"
+         "${MINGW_PACKAGE_PREFIX}-boost-libs"
+         "${MINGW_PACKAGE_PREFIX}-cairo"
+         "${MINGW_PACKAGE_PREFIX}-cairomm"
+         "${MINGW_PACKAGE_PREFIX}-fontconfig"
+         "${MINGW_PACKAGE_PREFIX}-freetype"
          "${MINGW_PACKAGE_PREFIX}-gc"
-         "${MINGW_PACKAGE_PREFIX}-gdl"
+         "${MINGW_PACKAGE_PREFIX}-gcc-libs"
+         "${MINGW_PACKAGE_PREFIX}-gdk-pixbuf2"
+         "${MINGW_PACKAGE_PREFIX}-gettext-runtime"
          "${MINGW_PACKAGE_PREFIX}-ghostscript"
+         "${MINGW_PACKAGE_PREFIX}-glib2"
          "${MINGW_PACKAGE_PREFIX}-graphicsmagick"
          "${MINGW_PACKAGE_PREFIX}-gsl"
-         "${MINGW_PACKAGE_PREFIX}-gtkmm3"
-         "${MINGW_PACKAGE_PREFIX}-gtkspell3"
-         "${MINGW_PACKAGE_PREFIX}-hicolor-icon-theme"
+         "${MINGW_PACKAGE_PREFIX}-gspell"
          "${MINGW_PACKAGE_PREFIX}-gtk-update-icon-cache"
-         "${MINGW_PACKAGE_PREFIX}-imagemagick"
+         "${MINGW_PACKAGE_PREFIX}-gtkmm3"
+         "${MINGW_PACKAGE_PREFIX}-gtksourceview4"
+         "${MINGW_PACKAGE_PREFIX}-harfbuzz"
+         "${MINGW_PACKAGE_PREFIX}-hicolor-icon-theme"
          "${MINGW_PACKAGE_PREFIX}-lcms2"
+         "${MINGW_PACKAGE_PREFIX}-lib2geom"
          "${MINGW_PACKAGE_PREFIX}-libcdr"
+         "${MINGW_PACKAGE_PREFIX}-libepoxy"
+         "${MINGW_PACKAGE_PREFIX}-libiconv"
+         "${MINGW_PACKAGE_PREFIX}-libjpeg-turbo"
+         "${MINGW_PACKAGE_PREFIX}-libpng"
          "${MINGW_PACKAGE_PREFIX}-librevenge"
+         "${MINGW_PACKAGE_PREFIX}-libsigc++"
          "${MINGW_PACKAGE_PREFIX}-libsoup"
          "${MINGW_PACKAGE_PREFIX}-libvisio"
          "${MINGW_PACKAGE_PREFIX}-libxml2"
          "${MINGW_PACKAGE_PREFIX}-libxslt"
          "${MINGW_PACKAGE_PREFIX}-libwpg"
+         "${MINGW_PACKAGE_PREFIX}-omp"
+         "${MINGW_PACKAGE_PREFIX}-pango"
+         "${MINGW_PACKAGE_PREFIX}-pangomm"
          "${MINGW_PACKAGE_PREFIX}-poppler"
-         "${MINGW_PACKAGE_PREFIX}-popt"
          "${MINGW_PACKAGE_PREFIX}-potrace"
          "${MINGW_PACKAGE_PREFIX}-python"
-         "${MINGW_PACKAGE_PREFIX}-scour")
+         "${MINGW_PACKAGE_PREFIX}-readline"
+         "${MINGW_PACKAGE_PREFIX}-scour"
+         "${MINGW_PACKAGE_PREFIX}-zlib")
 optdepends=(#"${MINGW_PACKAGE_PREFIX}-pstoedit: latex formulas"
             "${MINGW_PACKAGE_PREFIX}-texlive-scheme-medium: latex formulas"
             "${MINGW_PACKAGE_PREFIX}-python-numpy: some extensions"
@@ -51,55 +72,78 @@ optdepends=(#"${MINGW_PACKAGE_PREFIX}-pstoedit: latex formulas"
             #"${MINGW_PACKAGE_PREFIX}-scour: optimized SVG output"
             #"${MINGW_PACKAGE_PREFIX}-uniconvertor: reading/writing to some proprietary formats"
             )
-options=('staticlibs' 'strip')
-source=("${_realname}-${pkgver}.tar.xz::https://media.inkscape.org/dl/resources/file/${_realname}-${pkgver}.tar.xz"
+source=("https://media.inkscape.org/dl/resources/file/${_realname}-${pkgver}.tar.xz"
+        "inkscape-poppler-24.10.patch::https://gitlab.com/inkscape/inkscape/-/commit/22304ae8034d067670a9f95022083a75fac92b4c.patch"
+        "inkscape-poppler-24.11.patch::https://gitlab.com/inkscape/inkscape/-/commit/0399372ec240d23e0e70548237a541f2b5bf0f34.patch"
+        "inkscape-poppler-24.12.patch::https://gitlab.com/inkscape/inkscape/-/commit/819f698dbfc02035b919d2f0853ea116685dfdda.patch"
+        "inkscape-gobjectptr.patch::https://gitlab.com/inkscape/inkscape/-/commit/eb6dadcf1a5c660167ba43f3606c8e7cc6529787.patch"
         inkscape-1.0.1-unbundle.patch
         inkscape-1.0.1-install-layout.patch
-        3622-poppler-fix.patch)
-sha256sums=('aeca0b9d33b5b1cfa9aa70433bdee6a8c3d020ffafc2e6f0c9a60eed7a7978af'
+        007-no-console-clang.patch)
+sha256sums=('c59a85453b699addebcd51c1dc07684dd96a10c8aec716b19551db50562e13f5'
+            'f2ce2d04cfd8b7db046c57cdc2fd4dc8d5946642f7d47b1d8b87ebc2cd6e8ccc'
+            'ce742fe3c522508eb0faaa36076e13fca876de3bc42117ace0a1ecebda73d78d'
+            '540aac802ece4ab569eaae6fd1ef163cfb0f145eb94eca5e1d47521f56434494'
+            '2c2e04d8524fb75e7758ba43742512ad66447ec0b56f28279f4679b96cd1425f'
             '92387251c1740f1a57cde9e587cc673ef1600813617bd2c9db65598c324a24d4'
             '131b2e1190637df0554ef1ee8cf46440689584375c117d057ab47d5871c58128'
-            '9a579d6d960d832ee39c2e6aa20e9abc527cc9a66e88c539892718760d4e385a')
+            'c49d38b7c1a66e4b40e1b75fb055b730eb863a67a74d899da6d4d6db6baedcec')
+noextract=("${_realname}-${pkgver}.tar.xz")
+
+apply_patch_with_msg() {
+  for _patch in "$@"
+  do
+    msg2 "Applying $_patch"
+    patch -Nbp1 -i "${srcdir}/$_patch"
+  done
+}
 
 prepare() {
-  mv "${srcdir}/inkscape-1.1.1_2021-09-20_3bf5ae0d25" "${srcdir}/${_realname}-${pkgver}"
-  cd "${srcdir}/${_realname}-${pkgver}"
+  # Symlinks only in packaging/macos and src/3rdparty/cairo folders
+  tar -xf ${_realname}-${pkgver}.tar.xz || true
 
-  patch -p1 -i ${srcdir}/inkscape-1.0.1-unbundle.patch
-  patch -p1 -i ${srcdir}/inkscape-1.0.1-install-layout.patch
+  mv "${srcdir}"/${_realname}-${pkgver}_* "${srcdir}"/${_realname}-${pkgver}
+  cd "${srcdir}"/${_realname}-${pkgver}
 
-  # https://gitlab.com/inkscape/inkscape/-/merge_requests/3622
-  patch -p1 -i ${srcdir}/3622-poppler-fix.patch
+  apply_patch_with_msg \
+    inkscape-poppler-24.10.patch \
+    inkscape-poppler-24.11.patch \
+    inkscape-poppler-24.12.patch \
+    inkscape-gobjectptr.patch \
+    inkscape-1.0.1-unbundle.patch \
+    inkscape-1.0.1-install-layout.patch \
+    007-no-console-clang.patch
 }
 
 build() {
-  [[ -d build-${MSYSTEM} ]] && rm -rf build-${MSYSTEM}
   mkdir -p build-${MSYSTEM} && cd build-${MSYSTEM}
 
   local -a extra_config
-  
   if check_option "debug" "y"; then
     extra_config+=(-DCMAKE_BUILD_TYPE=Debug)
   else
     extra_config+=(-DCMAKE_BUILD_TYPE=Release)
   fi
 
+  CFLAGS+=" -Wno-implicit-function-declaration" \
   MSYS=winsymlinks:native \
   MSYS2_ARG_CONV_EXCL="-DCMAKE_INSTALL_PREFIX=" \
-  ${MINGW_PREFIX}/bin/cmake.exe \
+  ${MINGW_PREFIX}/bin/cmake.exe -Wno-dev \
     -G"Ninja" \
     -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
-    ${extra_config[@]} \
-    -Wno-dev \
+    "${extra_config[@]}" \
+    -DBUILD_TESTING=OFF \
     -DCMAKE_AR=${MINGW_PREFIX}/bin/ar \
     -DWITH_IMAGE_MAGICK=OFF \
+    -DWITH_INTERNAL_2GEOM=OFF \
     ../${_realname}-${pkgver}
 
   ${MINGW_PREFIX}/bin/cmake --build .
 }
 
 package() {
-  cd ${srcdir}/build-${MSYSTEM}
+  cd "${srcdir}"/build-${MSYSTEM}
+  DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake --install .
 
-  DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/cmake --build . --target install
+  install -Dm644 "${srcdir}"/${_realname}-${pkgver}/COPYING "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/COPYING"
 }

@@ -7,12 +7,14 @@ pkgver=2.6.2
 pkgrel=1
 pkgdesc="Yices is a fast SMT solver with C and Python bindings."
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
+mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clangarm64')
 url="https://yices.csl.sri.com"
 license=('GPLv3')
 depends=("${MINGW_PACKAGE_PREFIX}-gmp")
 makedepends=("dos2unix"
-             "gperf")
+             "${MINGW_PACKAGE_PREFIX}-autotools"
+             "${MINGW_PACKAGE_PREFIX}-gperf"
+             "${MINGW_PACKAGE_PREFIX}-cc")
 options=() # 'debug')
 source=("${_realname}-${pkgver}.tar.gz"::"https://yices.csl.sri.com/releases/${pkgver}/yices-${pkgver}-src.tar.gz")
 sha256sums=('1f205c056dd430f830c688fba6c87d8bd07bd8fa05f65936e12c27e71fa3576a')
@@ -59,5 +61,5 @@ package() {
   cd "${srcdir}"/yices-${pkgver}
   make install DESTDIR="${pkgdir}"
 
-  install -Dm644 "${srcdir}"/yices-${pkgver}/LICENSE ${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE
+  install -Dm644 "${srcdir}"/yices-${pkgver}/LICENSE "${pkgdir}"${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE
 }

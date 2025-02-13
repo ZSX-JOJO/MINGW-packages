@@ -4,46 +4,47 @@ _realname=creduce
 pkgbase=mingw-w64-${_realname}
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}")
 replaces=("${MINGW_PACKAGE_PREFIX}-${_realname}-git")
-pkgver=2.10.0
+pkgver=2.10.0.r110.g31e855e
 pkgrel=1
+_commit=31e855e290970cba0286e5032971509c0e7c0a80
 pkgdesc="A C program reducer (mingw-w64)"
+arch=('any')
+mingw_arch=('mingw64' 'ucrt64' 'clang64')
+url='https://github.com/csmith-project/creduce'
+license=('spdx:NCSA')
 depends=('perl-Benchmark-Timer'
          'perl-Exporter-Lite'
          'perl-File-Which'
          'perl-Getopt-Tabular'
          'perl-Regexp-Common'
-         'perl-Sys-CPU'
          "${MINGW_PACKAGE_PREFIX}-astyle"
          "${MINGW_PACKAGE_PREFIX}-indent"
-         "${MINGW_PACKAGE_PREFIX}-clang")
-arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64')
-url='https://github.com/csmith-project/creduce'
-license=('custom:University of Illinois/NCSA Open Source License')
-makedepends=("flex" "${MINGW_PACKAGE_PREFIX}-clang")
-source=(https://github.com/csmith-project/creduce/archive/${_realname}-${pkgver}.tar.gz
-        "llvm-config-cygpath"
-        "002-fix-linking.patch")
-sha256sums=('de320cd83bd77ec1a591f36dd6a4d0d1c47a0a28d850a6ebd348540feeab2297'
-            '03a7239d1e26d8a5dd5f405e10826679725cae6c01a9c37e80c6f1c184dad0a9'
-            'd08dd0e6c8beb3c2c2b9f2aa32e265f22068f67a6c26b7c849bab6a704bc1d3b')
+         "${MINGW_PACKAGE_PREFIX}-clang-libs")
+makedepends=("${MINGW_PACKAGE_PREFIX}-cc"
+             "${MINGW_PACKAGE_PREFIX}-autotools"
+             "${MINGW_PACKAGE_PREFIX}-clang"
+             "git")
+source=(${_realname}::git+https://github.com/csmith-project/creduce#commit=${_commit}
+        "0001-llvm19.patch")
+sha256sums=('94887099adcc2e98dc829fb2c00b587aa8693346951bfca7674fd9086925b9e8'
+            '67fd2736c16699d4e0e35c13c247c4c59ee9c0ce7c3f75403956aec0ab0f04eb')
+
+pkgver() {
+  cd "${srcdir}/${_realname}"
+  git describe --long ${_commit} | sed 's/creduce-//g;s/\([^-]*-g\)/r\1/;s/-/./g;s/^v//g'
+}
 
 prepare() {
-  cd ${srcdir}/${_realname}-${_realname}-${pkgver}
-  patch -p1 -i ${srcdir}/002-fix-linking.patch
+  cd "${srcdir}/${_realname}"
 
-  cd "${srcdir}"
-  [[ -d tools ]] && rm -rf tools
-  mkdir tools
-  cp -f "${srcdir}"/llvm-config-cygpath tools/llvm-config
+  # https://github.com/csmith-project/creduce/issues/276
+  patch -Np1 -i "${srcdir}/0001-llvm19.patch"
 }
 
 build() {
-  cd "${srcdir}"
-  [[ -d ${CARCH} ]] && rm -rf ${CARCH}
-  mkdir ${CARCH} && cd ${CARCH}
-  PATH="${srcdir}/tools:$PATH" \
-  ../${_realname}-${_realname}-${pkgver}/configure \
+  mkdir -p build-${MSYSTEM} && cd build-${MSYSTEM}
+
+  ../${_realname}/configure \
       --prefix=${MINGW_PREFIX} \
       --build=${MINGW_CHOST} \
       --host=${MINGW_CHOST}
@@ -52,13 +53,14 @@ build() {
 }
 
 package() {
-  cd "${srcdir}/${CARCH}"
+  cd "${srcdir}/build-${MSYSTEM}"
   make DESTDIR="${pkgdir}" install
-  install -Dm644 "../${_realname}-${_realname}-${pkgver}/COPYING" "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/COPYING"
+
+  install -Dm644 "../${_realname}/COPYING" "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/COPYING"
 
   # Point creduce perl script:
   # #!/${MINGW_PREFIX} -> #!/usr
   # ..  to msys2 perl.
   sed "s|#!${MINGW_PREFIX}|#!/usr|g" \
-    -i ${pkgdir}${MINGW_PREFIX}/bin/creduce
+    -i "${pkgdir}"${MINGW_PREFIX}/bin/creduce
 }

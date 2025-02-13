@@ -3,26 +3,25 @@
 _realname=atkmm
 pkgbase=mingw-w64-${_realname}
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
-pkgver=2.28.2
-pkgrel=2
+pkgver=2.28.4
+pkgrel=1
 pkgdesc="C++ bindings for atk (V2.28) (mingw-w64)"
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
+mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clangarm64')
 url="https://www.gtkmm.org/"
-license=("LGPL")
+license=('spdx:LGPL-2.1-or-later')
 depends=("${MINGW_PACKAGE_PREFIX}-atk"
          "${MINGW_PACKAGE_PREFIX}-glibmm"
          "${MINGW_PACKAGE_PREFIX}-libsigc++")
 makedepends=("${MINGW_PACKAGE_PREFIX}-libxslt"
              "${MINGW_PACKAGE_PREFIX}-meson"
-             "${MINGW_PACKAGE_PREFIX}-pkg-config")
-options=('strip' '!debug' 'staticlibs')
+             "${MINGW_PACKAGE_PREFIX}-cc"
+             "${MINGW_PACKAGE_PREFIX}-pkgconf")
 source=("https://download.gnome.org/sources/${_realname}/${pkgver%.*}/${_realname}-${pkgver}.tar.xz")
-sha256sums=('a0bb49765ceccc293ab2c6735ba100431807d384ffa14c2ebd30e07993fd2fa4')
+sha256sums=('0a142a8128f83c001efb8014ee463e9a766054ef84686af953135e04d28fdab3')
 
 build() {
-  [[ -d "${srcdir}/build-${MINGW_CHOST}" ]] && rm -rf "${srcdir}/build-${MINGW_CHOST}"
-  mkdir -p "${srcdir}/build-${MINGW_CHOST}" && cd "${srcdir}/build-${MINGW_CHOST}"
+  mkdir -p "build-${MSYSTEM}" && cd "build-${MSYSTEM}"
 
   declare -a extra_config
   if check_option "debug" "n"; then
@@ -34,7 +33,7 @@ build() {
   CFLAGS+=" -Wno-attributes" \
   CXXFLAGS+=" -Wno-attributes" \
   MSYS2_ARG_CONV_EXCL="--prefix=" \
-  ${MINGW_PREFIX}/bin/meson.exe \
+  ${MINGW_PREFIX}/bin/meson.exe setup \
     --prefix="${MINGW_PREFIX}" \
     "${extra_config[@]}" \
     --wrap-mode=nodownload \
@@ -48,12 +47,12 @@ build() {
 }
 
 check() {
-  cd "${srcdir}/build-${MINGW_CHOST}"
+  cd "${srcdir}/build-${MSYSTEM}"
   ${MINGW_PREFIX}/bin/meson.exe test || true
 }
 
 package() {
-  cd "${srcdir}/build-${MINGW_CHOST}"
+  cd "${srcdir}/build-${MSYSTEM}"
 
   DESTDIR="${pkgdir}" ${MINGW_PREFIX}/bin/meson.exe install
 
