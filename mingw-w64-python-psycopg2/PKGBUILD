@@ -3,25 +3,29 @@
 _realname=psycopg2
 pkgbase=mingw-w64-python-${_realname}
 pkgname=("${MINGW_PACKAGE_PREFIX}-python-${_realname}")
-provides=("${MINGW_PACKAGE_PREFIX}-python3-${_realname}")
-conflicts=("${MINGW_PACKAGE_PREFIX}-python3-${_realname}")
-replaces=("${MINGW_PACKAGE_PREFIX}-python3-${_realname}")
-pkgver=2.9.1
-pkgrel=1
+pkgver=2.9.10
+pkgrel=2
 pkgdesc="A PostgreSQL database adapter for the Python programming language (mingw-w64)"
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
+mingw_arch=('mingw64' 'ucrt64' 'clang64' 'clangarm64')
 url='https://www.psycopg.org/'
-license=('LGPL3')
-validpgpkeys=('8AD609956CF1899418E19A856013BD3AFCF957DE')
+msys2_references=(
+  'purl: pkg:pypi/psycopg2'
+)
+license=('spdx:LGPL-3.0-or-later')
 depends=("${MINGW_PACKAGE_PREFIX}-python"
-         "${MINGW_PACKAGE_PREFIX}-postgresql>=8.4.1")
-makedepends=("${MINGW_PACKAGE_PREFIX}-python-setuptools")
-options=('staticlibs' 'strip' '!debug')
-source=(https://pypi.org/packages/source/p/${_realname}/${_realname}-$pkgver.tar.gz
-mingw-fix.patch)
-sha256sums=('de5303a6f1d0a7a34b9d40e4d3bef684ccc44a49bbe3eb85e3c0bffb4a131b7c'
-            '732FA9437AEC1B5CE5569951DC689578D0E4FC83A042E6BF07455CFF6041C2E3')
+         "${MINGW_PACKAGE_PREFIX}-postgresql")
+makedepends=(
+  "${MINGW_PACKAGE_PREFIX}-python-build"
+  "${MINGW_PACKAGE_PREFIX}-python-installer"
+  "${MINGW_PACKAGE_PREFIX}-python-setuptools"
+  "${MINGW_PACKAGE_PREFIX}-cc"
+)
+source=("https://pypi.org/packages/source/${_realname::1}/${_realname}/${_realname}-${pkgver}.tar.gz"
+        mingw-fix.patch)
+sha256sums=('12ec0b40b0273f95296233e8750441339298e6a572f7039da5b260e3c8b60e11'
+            '732fa9437aec1b5ce5569951dc689578d0e4fc83a042e6bf07455cff6041c2e3')
+validpgpkeys=('8AD609956CF1899418E19A856013BD3AFCF957DE')
 
 # Helper macros to help make tasks easier #
 apply_patch_with_msg() {
@@ -31,46 +35,29 @@ apply_patch_with_msg() {
     patch -Nbp1 -i "${srcdir}/$_patch"
   done
 }
-
-del_file_exists() {
-  for _fname in "$@"
-  do
-    if [ -f $_fname ]; then
-      rm -rf $_fname
-    fi
-  done
-}
 # =========================================== #
 
 prepare() {
   cd "${srcdir}/${_realname}-${pkgver}"
   apply_patch_with_msg mingw-fix.patch
-
-  cd ${srcdir}
-  rm -rf python-build-${MSYSTEM} | true
-  cp -r "${_realname}-${pkgver}" "python-build-${MSYSTEM}"
-
-  # Set version for setuptools_scm
-  export SETUPTOOLS_SCM_PRETEND_VERSION=${pkgver}
 }
 
 build() {
-  msg "Python build for ${MSYSTEM}"
-  cd "${srcdir}/python-build-${MSYSTEM}"
-  ${MINGW_PREFIX}/bin/python setup.py build
+  cp -r "${_realname}-${pkgver}" "python-build-${MSYSTEM}" && cd "python-build-${MSYSTEM}"
+  ${MINGW_PREFIX}/bin/python -m build --wheel --skip-dependency-check --no-isolation
 }
 
 check() {
-  msg "Python test for ${MSYSTEM}"
   cd "${srcdir}/python-build-${MSYSTEM}"
-  ${MINGW_PREFIX}/bin/python setup.py check
+  ${MINGW_PREFIX}/bin/python -m pytest
 }
 
 package() {
-  cd "${srcdir}/python-build-${MSYSTEM}"
-  MSYS2_ARG_CONV_EXCL="--prefix=;--install-scripts=;--install-platlib=" \
-  ${MINGW_PREFIX}/bin/python setup.py install --prefix=${MINGW_PREFIX} \
-    --root="${pkgdir}" --optimize=1 --skip-build
+  cd "${srcdir}"/python-build-${MSYSTEM}
+
+  MSYS2_ARG_CONV_EXCL="--prefix=" \
+    ${MINGW_PREFIX}/bin/python -m installer --prefix=${MINGW_PREFIX} \
+    --destdir="${pkgdir}" dist/*.whl
 
   install -Dm644 LICENSE "${pkgdir}${MINGW_PREFIX}/share/licenses/python-${_realname}/COPYING"
 }

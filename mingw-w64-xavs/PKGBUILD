@@ -7,10 +7,10 @@ pkgver=0.1.55
 pkgrel=2
 pkgdesc="XAVS is to implement high quality encoder and decoder of the Audio Video Standard of China (AVS). (mingw-w64)"
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
+mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64')
 url="https://xavs.sourceforge.io/"
 license=("GPL")
-makedepends=("${MINGW_PACKAGE_PREFIX}-gcc" "${MINGW_PACKAGE_PREFIX}-pkg-config" "${MINGW_PACKAGE_PREFIX}-yasm")
+makedepends=("${MINGW_PACKAGE_PREFIX}-cc" "${MINGW_PACKAGE_PREFIX}-autotools" "${MINGW_PACKAGE_PREFIX}-yasm")
 depends=("${MINGW_PACKAGE_PREFIX}-gcc-libs")
 source=("https://github.com/OpenMandrivaAssociation/xavs/raw/master/xavs-${pkgver}.tar.xz"
         "0001-xavs-0.1.55-fix-dynamic-build.patch"
@@ -26,9 +26,9 @@ prepare(){
 }
 
 build() {
-  [[ -d "build-${MINGW_CHOST}" ]] && rm -rf "build-${MINGW_CHOST}"
-  cp -r "${srcdir}/${_realname}-${pkgver}" "${srcdir}/build-${MINGW_CHOST}"
-  cd "${srcdir}/build-${MINGW_CHOST}"
+  [[ -d "build-${MSYSTEM}" ]] && rm -rf "build-${MSYSTEM}"
+  cp -r "${srcdir}/${_realname}-${pkgver}" "${srcdir}/build-${MSYSTEM}"
+  cd "${srcdir}/build-${MSYSTEM}"
 
   ./configure \
     --prefix=${MINGW_PREFIX} \
@@ -40,6 +40,6 @@ build() {
 }
 
 package() {
-  cd "${srcdir}/build-${MINGW_CHOST}"
-  make DESTDIR=${pkgdir} install
+  cd "${srcdir}/build-${MSYSTEM}"
+  make DESTDIR="${pkgdir}" install
 }

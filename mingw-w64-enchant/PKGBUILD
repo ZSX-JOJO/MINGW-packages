@@ -4,47 +4,44 @@
 _realname=enchant
 pkgbase=mingw-w64-${_realname}
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
-pkgver=2.3.1
-pkgrel=1
+pkgver=2.6.7
+pkgrel=3
 pkgdesc="Enchanting Spell Checking Library (mingw-w64)"
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
-url="https://abiword.github.io/enchant/"
-license=(LGPL2.1)
-depends=(${MINGW_PACKAGE_PREFIX}-aspell
-         ${MINGW_PACKAGE_PREFIX}-hunspell
-         ${MINGW_PACKAGE_PREFIX}-nuspell
-         ${MINGW_PACKAGE_PREFIX}-gcc-libs
-         ${MINGW_PACKAGE_PREFIX}-glib2
-         ${MINGW_PACKAGE_PREFIX}-libvoikko)
-makedepends=("${MINGW_PACKAGE_PREFIX}-pkg-config")
+mingw_arch=('mingw64' 'ucrt64' 'clang64' 'clangarm64')
+url="https://rrthomas.github.io/enchant/"
+msys2_repository_url="https://github.com/rrthomas/enchant"
+msys2_references=(
+  'archlinux: enchant'
+)
+license=('spdx:LGPL-2.1-or-later')
+depends=("${MINGW_PACKAGE_PREFIX}-aspell"
+         "${MINGW_PACKAGE_PREFIX}-gcc-libs"
+         "${MINGW_PACKAGE_PREFIX}-glib2"
+         "${MINGW_PACKAGE_PREFIX}-hunspell"
+         "${MINGW_PACKAGE_PREFIX}-icu"
+         "${MINGW_PACKAGE_PREFIX}-libvoikko"
+         "${MINGW_PACKAGE_PREFIX}-nuspell")
+makedepends=("${MINGW_PACKAGE_PREFIX}-cc"
+             "${MINGW_PACKAGE_PREFIX}-autotools"
+             "groff")
 checkdepends=("${MINGW_PACKAGE_PREFIX}-unittest-cpp")
-options=('!libtool' 'strip' '!debug' '!makeflags')
-source=("https://github.com/AbiWord/enchant/releases/download/v${pkgver}/enchant-${pkgver}.tar.gz"
-        001_fix_relocation.patch
-        002-providers-voikko-use-g_strndup.patch)
-sha256sums=('7b4b1afcf2cd8bfa691deea6188404d337f23174bbc39b9c2add2bf340736e9c'
-            '8cac1be09ab84212b4ee388cbaa45593e3ed71b257b64c20e99cf147249dec62'
-            '42bb9377b1ef27bb49da36d3d1873deb9082f2ccb3b7e88a9e56d5e1fd671977')
+source=("https://github.com/rrthomas/enchant/releases/download/v${pkgver}/enchant-${pkgver}.tar.gz"
+        001_fix_relocation.patch)
+sha256sums=('a1c2e5b59acca000bbfb24810af4a1165733d407f2154786588e076c8cd57bfc'
+            '2eaee551887a4dcd9b47fa3fc31db8955c51b323b89b9a6a4f096b7dca135942')
 
 prepare() {
   cd "${srcdir}/${_realname}-${pkgver}"
-  patch -p1 -i ${srcdir}/001_fix_relocation.patch
-
-  # https://github.com/AbiWord/enchant/pull/282
-  patch -p1 -i ${srcdir}/002-providers-voikko-use-g_strndup.patch
+  patch -p1 -i "${srcdir}"/001_fix_relocation.patch
 
   autoreconf -fiv
 }
 
 build() {
-  [[ -d "${srcdir}/build-${MINGW_CHOST}" ]] && rm -rf "${srcdir}/build-${MINGW_CHOST}"
-  mkdir -p "${srcdir}/build-${MINGW_CHOST}" && cd "${srcdir}/build-${MINGW_CHOST}"
+  mkdir -p "${srcdir}/build-${MSYSTEM}" && cd "${srcdir}/build-${MSYSTEM}"
 
   ../${_realname}-${pkgver}/configure \
-    --build=${MINGW_CHOST} \
-    --host=${MINGW_CHOST} \
-    --target=${MINGW_CHOST} \
     --prefix=${MINGW_PREFIX} \
     --enable-relocatable \
     --with-aspell \
@@ -57,12 +54,12 @@ build() {
 }
 
 check() {
-  cd "${srcdir}/build-${MINGW_CHOST}"
+  cd "${srcdir}/build-${MSYSTEM}"
   make check || true
 }
 
 package() {
-  cd "${srcdir}/build-${MINGW_CHOST}"
+  cd "${srcdir}/build-${MSYSTEM}"
   # MSYS2_ARG_CONV_EXCL="-DENCHANT_USPELL_DICT_DIR=;-DENCHANT_MYSPELL_DICT_DIR=;-DENCHANT_ISPELL_DICT_DIR=;-DENCHANT_PREFIX_DIR=;-DENCHANT_GLOBAL_MODULE_DIR=;-DENCHANT_GLOBAL_ORDERING=;-DENCHANT_BIN_DIR="
   make DESTDIR="${pkgdir}" install
   install -Dm644 "${srcdir}/${_realname}-${pkgver}/COPYING.LIB" "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/COPYING.LIB"

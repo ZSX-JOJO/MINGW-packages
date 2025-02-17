@@ -3,39 +3,49 @@
 _realname=maturin
 pkgbase=mingw-w64-python-${_realname}
 pkgname=${MINGW_PACKAGE_PREFIX}-python-${_realname}
-pkgver=0.11.5
+pkgver=1.8.2
 pkgrel=1
 pkgdesc='Build and publish crates with pyo3, rust-cpython and cffi bindings as well as rust binaries as python packages (mingw-w64)'
-url='https://github.com/pyo3/maturin'
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64')
-license=('MIT')
-depends=(
-    ${MINGW_PACKAGE_PREFIX}-python
-    ${MINGW_PACKAGE_PREFIX}-python-toml)
+mingw_arch=('mingw64' 'ucrt64' 'clang64' 'clangarm64')
+url='https://www.maturin.rs/'
+msys2_repository_url='https://github.com/pyo3/maturin'
+msys2_references=(
+  'purl: pkg:pypi/maturin'
+)
+license=('spdx:MIT OR Apache-2.0')
+depends=("${MINGW_PACKAGE_PREFIX}-python")
 makedepends=(
-    ${MINGW_PACKAGE_PREFIX}-python-setuptools
-    ${MINGW_PACKAGE_PREFIX}-python-setuptools-rust)
-source=(https://github.com/pyo3/${_realname}/archive/v${pkgver}.tar.gz)
-sha256sums=('33b67e66e725c76eac866c2174cfbe708e77a44d215878474d84bc5f9f6386f3')
+    "${MINGW_PACKAGE_PREFIX}-python-build"
+    "${MINGW_PACKAGE_PREFIX}-python-installer"
+    "${MINGW_PACKAGE_PREFIX}-python-setuptools-rust")
+options=('!strip')
+source=("https://pypi.org/packages/source/${_realname::1}/${_realname}/${_realname}-${pkgver}.tar.gz")
+sha256sums=('e31abc70f6f93285d6e63d2f4459c079c94c259dd757370482d2d4ceb9ec1fa0')
 
 prepare() {
-  cd "${srcdir}"
-  rm -rf python-build-${MSYSTEM} | true
-  cp -r "${_realname}-${pkgver}" "python-build-${MSYSTEM}"
+  cp -r "${_realname}-${pkgver}" "python-build-${MSYSTEM}" && cd "python-build-${MSYSTEM}"
+
+  cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')"
 }
 
 build() {
-  msg "Python build for ${MSYSTEM}"
-  cd "${srcdir}/python-build-${MSYSTEM}"
-  ${MINGW_PREFIX}/bin/python setup.py build
+  cd "python-build-${MSYSTEM}"
+
+  export MATURIN_SETUP_ARGS="--features full,rustls"
+  python -m build --wheel --skip-dependency-check --no-isolation
 }
 
 package() {
-  cd "${srcdir}/python-build-${MSYSTEM}"
-  MSYS2_ARG_CONV_EXCL="--prefix=;--install-scripts=;--install-platlib=" \
-  ${MINGW_PREFIX}/bin/python setup.py install --prefix=${MINGW_PREFIX} \
-    --root=${pkgdir} --optimize=1 --skip-build
+  cd "python-build-${MSYSTEM}"
 
-  install -Dm644 license-mit ${pkgdir}${MINGW_PREFIX}/share/licenses/python-${_realname}/LICENSE
+  MSYS2_ARG_CONV_EXCL="--prefix=" \
+    python -m installer --prefix=${MINGW_PREFIX} \
+    --destdir="${pkgdir}" dist/*.whl
+
+  local _complete="${pkgdir}${MINGW_PREFIX}/bin/maturin completions"
+  $_complete bash | install -Dm644 /dev/stdin "${pkgdir}${MINGW_PREFIX}/share/bash-completion/completions/maturin"
+  $_complete zsh | install -Dm644 /dev/stdin "${pkgdir}${MINGW_PREFIX}/share/zsh/site-functions/_maturin"
+  $_complete fish | install -Dm644 /dev/stdin "${pkgdir}${MINGW_PREFIX}/share/fish/vendor_completions.d/maturin.fish"
+  install -Dm644 license-{apache,mit} -t "${pkgdir}${MINGW_PREFIX}/share/licenses/python-${_realname}/"
 }

@@ -3,25 +3,36 @@
 _realname=xmake
 pkgbase=mingw-w64-${_realname}
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
-pkgver=2.5.9
+pkgver=2.9.8
 pkgrel=1
 pkgdesc="A cross-platform build utility based on Lua (mingw-w64)"
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
-url="https://github.com/xmake-io/xmake"
-license=('Apache')
+mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64')
+msys2_references=(
+  'archlinux: xmake'
+)
+msys2_repository_url='https://github.com/xmake-io/xmake/'
+url='https://xmake.io/'
+license=('spdx:Apache-2.0')
 depends=("${MINGW_PACKAGE_PREFIX}-ncurses"
          "${MINGW_PACKAGE_PREFIX}-readline")
-makedepends=("${MINGW_PACKAGE_PREFIX}-gcc")
-source=("${_realname}-${pkgver}.tar.gz"::"https://github.com/xmake-io/${_realname}/releases/download/v${pkgver}/${_realname}-v${pkgver}.tar.gz")
-sha256sums=('5b50e3f28956cabcaa153624c91781730387ceb7c056f3f9b5306b1c77460d8f')
+makedepends=("${MINGW_PACKAGE_PREFIX}-cc")
+source=("https://github.com/xmake-io/${_realname}/releases/download/v${pkgver}/${_realname}-v${pkgver}.tar.gz")
+sha256sums=('e797636aadf072c9b0851dba39b121e93c739d12d78398c91f12e8ed355d6a95')
+
+prepare() {
+    # Workaround: tarception
+    tar -xf "${_realname}-v${pkgver}.tar"
+}
 
 build() {
-    cd "$srcdir"
-    make build
+    cd "${_realname}-${pkgver}"
+    ./configure --prefix="${MINGW_PREFIX}" --toolchain=${CC}
+    make
 }
 
 package() {
-    cd "$srcdir"
-    make install DESTDIR="${pkgdir}" prefix="${MINGW_PREFIX}"
+    cd "${_realname}-${pkgver}"
+    make install PREFIX="${pkgdir}${MINGW_PREFIX}"
+    install -Dm644 "LICENSE.md" "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE.md"
 }

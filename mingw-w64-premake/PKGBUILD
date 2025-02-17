@@ -4,32 +4,23 @@
 _realname=premake
 pkgbase=mingw-w64-${_realname}
 pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}")
-pkgver=5.0a16
-_realver=5.0.0-alpha16
+pkgver=5.0beta4
+_realver=5.0.0-beta4
 pkgrel=1
 pkgdesc="A simple build configuration and project generation tool (mingw-w64)"
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
+mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64')
 url="https://premake.github.io/"
-license=('BSD')
-source=("${_realname}-${pkgver}.tar.gz::https://github.com/premake/premake-core/archive/v${_realver}.tar.gz"
-        "0001-contrib-curl-pollfd-conflict.patch"
-        "0002-fix-for-mingw.patch"
-        "0003-bootstrap-use-nix-commands.patch")
-sha256sums=('a2cfa24642ac50acb57ffcde48c23986348c174a24926736c37b2918778bd881'
-            '270d13c8c02b805a02cbf2fdd32ed6ac1cd9ebd6b51a3e91270c3ab88e0cb4f7'
-            '3d50ca9ac5b71349f24ef60652a8d73b72081e28db8932d6533f6a09165ecd5d'
-            '07f9d76c078ae2b995f1acffebeb934cee973df82335497e5df328c056de05fe')
+msys2_repository_url="https://github.com/premake/premake-core"
+license=('spdx:BSD-3-Clause')
+makedepends=("${MINGW_PACKAGE_PREFIX}-cc")
+source=("${_realname}-${pkgver}.tar.gz::https://github.com/premake/premake-core/archive/v${_realver}.tar.gz")
+sha256sums=('3174f5efac78592f61bb68ce157e1dae337f41480a4cd654aa3286451cc9ae7f')
 
 prepare() {
   rm -rf "build-${MSYSTEM}"
   cp -r "${_realname}-core-${_realver}" "build-${MSYSTEM}"
   cd "build-${MSYSTEM}"
-
-  # https://github.com/premake/premake-core/pull/1680
-  patch -Np1 -i "${srcdir}/0001-contrib-curl-pollfd-conflict.patch"
-  patch -Np1 -i "${srcdir}/0002-fix-for-mingw.patch"
-  patch -Np1 -i "${srcdir}/0003-bootstrap-use-nix-commands.patch"
 }
 
 build() {
@@ -54,6 +45,6 @@ build() {
 
 package() {
   cd "build-${MSYSTEM}"
-  install -Dm755 bin/release/premake5.exe ${pkgdir}${MINGW_PREFIX}/bin/premake5.exe
+  install -Dm755 bin/release/premake5.exe "${pkgdir}"${MINGW_PREFIX}/bin/premake5.exe
   install -Dm644 LICENSE.txt "${pkgdir}${MINGW_PREFIX}/share/licenses/${_realname}/LICENSE.txt"
 }

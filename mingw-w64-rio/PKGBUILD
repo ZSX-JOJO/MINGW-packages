@@ -1,0 +1,44 @@
+# Maintainer: Raphael Amorim <rapha850@gmail.com>
+_realname=rio
+pkgbase=mingw-w64-${_realname}
+pkgname=("${MINGW_PACKAGE_PREFIX}-${_realname}")
+pkgver=0.2.7
+pkgrel=1
+pkgdesc="A hardware-accelerated GPU terminal emulator focusing to run in desktops and browsers (mingw-w64)"
+arch=('any')
+mingw_arch=('mingw64' 'ucrt64' 'clang64' 'clangarm64')
+url="https://github.com/raphamorim/rio"
+license=('spdx:MIT')
+depends=("${MINGW_PACKAGE_PREFIX}-gcc-libs")
+makedepends=("${MINGW_PACKAGE_PREFIX}-rust")
+source=("https://github.com/raphamorim/${_realname}/archive/refs/tags/v${pkgver}.tar.gz")
+sha256sums=('97376694c864785bd7e6214d8d5d26dda47e9a7d134beeaa4dcf75bbebc63362')
+
+prepare() {
+  cd "${_realname}-${pkgver}"
+
+  cargo fetch --locked --target "$(rustc -vV | sed -n 's/host: //p')"
+}
+
+build() {
+  cd "${_realname}-${pkgver}"
+
+  cargo build -p rioterm --release --frozen
+}
+
+check() {
+  cd "${_realname}-${pkgver}"
+
+  cargo test -p rioterm --release --frozen
+}
+
+package() {
+  cd "${_realname}-${pkgver}"
+
+  cargo install \
+    --offline \
+    --no-track \
+    --frozen \
+    --path frontends/rioterm \
+    --root "${pkgdir}${MINGW_PREFIX}"
+}

@@ -3,48 +3,42 @@
 _realname=black
 pkgbase=mingw-w64-python-${_realname}
 pkgname=("${MINGW_PACKAGE_PREFIX}-python-${_realname}")
-pkgver=21.6b0
+pkgver=24.10.0
 pkgrel=2
 pkgdesc='Uncompromising Python code formatter (mingw-w64)'
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
-url="https://github.com/psf/black"
-license=('MIT')
-depends=("${MINGW_PACKAGE_PREFIX}-python-appdirs"
+mingw_arch=('mingw64' 'ucrt64' 'clang64' 'clangarm64')
+url="https://black.readthedocs.io/"
+msys2_repository_url="https://github.com/psf/black"
+msys2_references=(
+  'purl: pkg:pypi/black'
+)
+license=('spdx:MIT')
+depends=("${MINGW_PACKAGE_PREFIX}-python"
          "${MINGW_PACKAGE_PREFIX}-python-click"
          "${MINGW_PACKAGE_PREFIX}-python-mypy_extensions"
+         "${MINGW_PACKAGE_PREFIX}-python-packaging"
          "${MINGW_PACKAGE_PREFIX}-python-pathspec"
-         "${MINGW_PACKAGE_PREFIX}-python-regex"
-         "${MINGW_PACKAGE_PREFIX}-python-toml"
-         "${MINGW_PACKAGE_PREFIX}-python-typed_ast"
-         "${MINGW_PACKAGE_PREFIX}-python-typing_extensions")
-makedepends=("${MINGW_PACKAGE_PREFIX}-python-setuptools"
-             "${MINGW_PACKAGE_PREFIX}-python-setuptools-scm")
-checkdepends=("${MINGW_PACKAGE_PREFIX}-python-aiohttp-cors")
-options=('!emptydirs')
-source=("https://files.pythonhosted.org/packages/source/${_realname:0:1}/${_realname}/${_realname}-${pkgver}.tar.gz")
-sha256sums=('dc132348a88d103016726fe360cb9ede02cecf99b76e3660ce6c596be132ce04')
-
-prepare() {
-  cd "$srcdir"
-  rm -rf python-build-${CARCH} | true
-  cp -r "${_realname}-$pkgver" "python-build-${CARCH}"
-}
+         "${MINGW_PACKAGE_PREFIX}-python-platformdirs")
+makedepends=("${MINGW_PACKAGE_PREFIX}-python-build"
+             "${MINGW_PACKAGE_PREFIX}-python-installer"
+             "${MINGW_PACKAGE_PREFIX}-python-hatchling"
+             "${MINGW_PACKAGE_PREFIX}-python-hatch-vcs"
+             "${MINGW_PACKAGE_PREFIX}-python-hatch-fancy-pypi-readme")
+options=('!strip')
+source=("https://pypi.org/packages/source/${_realname::1}/${_realname}/${_realname}-${pkgver}.tar.gz")
+sha256sums=('846ea64c97afe3bc677b761787993be4991810ecc7a4a937816dd6bddedc4875')
 
 build() {
-  cd "${srcdir}/python-build-${CARCH}"
-  ${MINGW_PREFIX}/bin/python setup.py build
+  cp -r "${_realname}-${pkgver}" "python-build-${MSYSTEM}" && cd "python-build-${MSYSTEM}"
+  ${MINGW_PREFIX}/bin/python -m build --wheel --skip-dependency-check --no-isolation
 }
 
 package() {
-  cd "${srcdir}/python-build-${CARCH}"
-  MSYS2_ARG_CONV_EXCL="--prefix=;--install-scripts=;--install-platlib=" \
-  ${MINGW_PREFIX}/bin/python setup.py install --prefix=${MINGW_PREFIX} \
-    --root="${pkgdir}" --optimize=1 --skip-build
-
-  for _f in "${pkgdir}${MINGW_PREFIX}"/bin/*-script.py; do
-    sed -e '1 { s/^#!.*$// }' -i ${_f}
-  done
+  cd "${srcdir}/python-build-${MSYSTEM}"
+  MSYS2_ARG_CONV_EXCL="--prefix=" \
+    ${MINGW_PREFIX}/bin/python -m installer --prefix=${MINGW_PREFIX} \
+    --destdir="${pkgdir}" dist/*.whl
 
   install -Dm644 LICENSE "${pkgdir}${MINGW_PREFIX}/share/licenses/python-${_realname}/LICENSE"
 }

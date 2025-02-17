@@ -3,13 +3,16 @@
 _realname=texlive-lang-korean
 pkgbase=mingw-w64-${_realname}
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
-pkgver=2021.20210906
-_revnr=${pkgver#2021.}
+pkgver=2023.20230404
+_revnr=${pkgver#2023.}
 pkgrel=1
 pkgdesc="TeX Live - Korean (mingw-w64)"
 license=('GPL')
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
+mingw_arch=('mingw64' 'ucrt64' 'clang64')
+msys2_references=(
+  'archlinux: texlive-langkorean'
+)
 depends=(
     "${MINGW_PACKAGE_PREFIX}-texlive-core"
     "${MINGW_PACKAGE_PREFIX}-texlive-lang-cjk"
@@ -23,8 +26,8 @@ source=("${_realname}-${_revnr}.tar.xz::https://github.com/msys2/msys2-texlive/r
     "${_realname}-extra-files.tar.xz::https://github.com/msys2/msys2-texlive/releases/download/${_revnr}/${_realname}-extra-files.tar.xz")
 options=('!emptydirs')
 sha256sums=(
-    "fa77528b6e46b78bffea2cf8791e13d733e8100d477d9742c03dc5b7ee1bd730"
-    "8620e7cd90bdda8fa32bf8d1413adaae20935d9573ee0f4c01289c52419a2d34"
+    "224f0543c5dce0ad636a28723493b1f19e25110cb90c97bf0de1f6b550708602"
+    "d30cc3e1821b7be4494fd1644fbf45b5350d2913de0a1445ea48b606b019015a"
 )
 
 build() {

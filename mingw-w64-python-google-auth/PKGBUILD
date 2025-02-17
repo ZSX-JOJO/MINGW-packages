@@ -3,41 +3,55 @@
 _realname=google-auth
 pkgbase=mingw-w64-python-${_realname}
 pkgname=("${MINGW_PACKAGE_PREFIX}-python-${_realname}")
-pkgver=1.31.0
-pkgrel=2
+pkgver=2.38.0
+pkgrel=1
 pkgdesc='Google Authentication Library (mingw-w64)'
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
-url="https://github.com/GoogleCloudPlatform/google-auth-library-python"
-license=('Apache')
-depends=("${MINGW_PACKAGE_PREFIX}-ca-certificates" "${MINGW_PACKAGE_PREFIX}-python-cachetools" "${MINGW_PACKAGE_PREFIX}-python-pyasn1-modules" "${MINGW_PACKAGE_PREFIX}-python-rsa")
-checkdepends=("${MINGW_PACKAGE_PREFIX}-python-mock" "${MINGW_PACKAGE_PREFIX}-python-requests" "${MINGW_PACKAGE_PREFIX}-python-flask" "${MINGW_PACKAGE_PREFIX}-python-oauth2client" "${MINGW_PACKAGE_PREFIX}-python-pytest-localserver" "${MINGW_PACKAGE_PREFIX}-python-cryptography" "${MINGW_PACKAGE_PREFIX}-python-freezegun" "${MINGW_PACKAGE_PREFIX}-python-responses" "${MINGW_PACKAGE_PREFIX}-python-pyopenssl")
-makedepends=("${MINGW_PACKAGE_PREFIX}-python-setuptools")
-options=('!emptydirs')
-source=("${_realname}-$pkgver.tar.gz::https://github.com/GoogleCloudPlatform/google-auth-library-python/archive/v$pkgver.tar.gz")
-sha256sums=('2f3aa3d5db511a9664b8f004e8550204636c75f435f18a66247ca68d811f57ad')
-
-prepare() {  
-  cd "$srcdir"
-  rm -rf python-build-${CARCH} | true
-  cp -r "${_realname}-library-python-${pkgver}" "python-build-${CARCH}"
-}
+mingw_arch=('mingw64' 'ucrt64' 'clang64' 'clangarm64')
+url='https://googleapis.dev/python/google-auth/latest/'
+msys2_repository_url='https://github.com/googleapis/google-auth-library-python'
+msys2_references=(
+  'archlinux: python-google-auth'
+  'purl: pkg:pypi/google-auth'
+)
+license=('spdx:Apache-2.0')
+depends=("${MINGW_PACKAGE_PREFIX}-ca-certificates"
+         "${MINGW_PACKAGE_PREFIX}-python-cachetools"
+         "${MINGW_PACKAGE_PREFIX}-python-pyasn1-modules"
+         "${MINGW_PACKAGE_PREFIX}-python-rsa")
+checkdepends=("${MINGW_PACKAGE_PREFIX}-python-flask"
+              "${MINGW_PACKAGE_PREFIX}-python-freezegun"
+              "${MINGW_PACKAGE_PREFIX}-python-mock"
+              "${MINGW_PACKAGE_PREFIX}-python-oauth2client"
+              "${MINGW_PACKAGE_PREFIX}-python-pyopenssl"
+              "${MINGW_PACKAGE_PREFIX}-python-pytest"
+              "${MINGW_PACKAGE_PREFIX}-python-pytest-cov"
+              "${MINGW_PACKAGE_PREFIX}-python-pytest-localserver"
+              "${MINGW_PACKAGE_PREFIX}-python-pyu2f"
+              "${MINGW_PACKAGE_PREFIX}-python-requests"
+              "${MINGW_PACKAGE_PREFIX}-python-urllib3"
+              "${MINGW_PACKAGE_PREFIX}-python-cryptography"
+              "${MINGW_PACKAGE_PREFIX}-python-responses")
+makedepends=("${MINGW_PACKAGE_PREFIX}-python-build"
+             "${MINGW_PACKAGE_PREFIX}-python-installer"
+             "${MINGW_PACKAGE_PREFIX}-python-setuptools")
+source=("https://pypi.org/packages/source/${_realname::1}/${_realname/-/_}/${_realname/-/_}-${pkgver}.tar.gz")
+sha256sums=('8285113607d3b80a3f1543b75962447ba8a09fe85783432a784fdeef6ac094c4')
 
 build() {
-  msg "Python build for ${CARCH}"  
-  cd "${srcdir}/python-build-${CARCH}"
-  ${MINGW_PREFIX}/bin/python setup.py build
+  cp -r "${_realname/-/_}-${pkgver}" "python-build-${MSYSTEM}" && cd "python-build-${MSYSTEM}"
+  ${MINGW_PREFIX}/bin/python -m build --wheel --skip-dependency-check --no-isolation
 }
 
 check() {
-  cd "${srcdir}/python-build-${CARCH}"
+  cd "${srcdir}/python-build-${MSYSTEM}"
   ${MINGW_PREFIX}/bin/python -m pytest tests || warning "Tests failed"
 }
 
 package() {
-  cd "${srcdir}/python-build-${CARCH}"
-  MSYS2_ARG_CONV_EXCL="--prefix=;--install-scripts=;--install-platlib=" \
-  ${MINGW_PREFIX}/bin/python setup.py install --prefix=${MINGW_PREFIX} \
-    --root="${pkgdir}" --optimize=1 --skip-build
+  cd "${srcdir}/python-build-${MSYSTEM}"
+  MSYS2_ARG_CONV_EXCL="--prefix=" \
+    ${MINGW_PREFIX}/bin/python -m installer --prefix=${MINGW_PREFIX} \
+    --destdir="${pkgdir}" dist/*.whl
   install -Dm644 LICENSE "${pkgdir}${MINGW_PREFIX}/share/licenses/python-${_realname}/LICENSE"
 }

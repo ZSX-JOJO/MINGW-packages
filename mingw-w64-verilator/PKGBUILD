@@ -3,35 +3,38 @@
 _realname=verilator
 pkgbase=mingw-w64-${_realname}
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
-pkgver=4.214
-pkgrel=2
+pkgver=5.032
+pkgrel=1
 pkgdesc="The fastest free Verilog HDL simulator (mingw-w64)"
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
-url="https://www.veripool.org/projects/verilator/wiki/Intro"
-license=("LGPL")
+mingw_arch=('mingw64' 'ucrt64' 'clang64' 'clangarm64')
+url="https://www.veripool.org/verilator/"
+msys2_repository_url="https://github.com/verilator/verilator"
+license=("spdx:LGPL-3.0-only")
 groups=("${MINGW_PACKAGE_PREFIX}-eda")
-makedepends=("${MINGW_PACKAGE_PREFIX}-gcc" "flex")
-depends=("${MINGW_PACKAGE_PREFIX}-gcc-libs")
+makedepends=("${MINGW_PACKAGE_PREFIX}-cc"
+             "${MINGW_PACKAGE_PREFIX}-autotools"
+             "${MINGW_PACKAGE_PREFIX}-python"
+             "help2man")
+# Will not build correctly if perl-w64 is installed on the machine!
+depends=("${MINGW_PACKAGE_PREFIX}-gcc-libs" "perl")
 
-source=(
-  "${_realname}::https://codeload.github.com/${_realname}/${_realname}/tar.gz/v${pkgver}"
+source=("https://github.com/${_realname}/${_realname}/archive/v${pkgver}/${_realname}-${pkgver}.tar.gz"
+"0001-Use-msys2-perl-since-it-doesn-t-work-with-windows-pe.patch"
 )
-sha256sums=(
-  'e14c7f6ffb00a6746ae2a8ea0424e90a1a30067e8ae4c96b8c42689ca1ca0b1f'
-)
+sha256sums=('5a262564b10be8bdb31ff4fb67d77bcf5f52fc1b4e6c88d5ca3264fb481f1e41'
+            '36e4268d4af11dcf15277a212f6dd0e5b05d4f98eafe381d46768c67aa90926c')
 
 prepare() {
-  [[ -d "${srcdir}/build-${MINGW_CHOST}" ]] && rm -rf "${srcdir}/build-${MINGW_CHOST}"
-  cp -rf "${srcdir}/${_realname}-${pkgver}" "${srcdir}/build-${MINGW_CHOST}"
-  cd "${srcdir}/build-${MINGW_CHOST}"
-  sh autoconf
+  cd "${srcdir}"/${_realname}-${pkgver}
+  patch -Np1 -i "${srcdir}/0001-Use-msys2-perl-since-it-doesn-t-work-with-windows-pe.patch"
+  cp /usr/include/FlexLexer.h src/
+  autoconf
 }
 
 build() {
-  cd "${srcdir}/build-${MINGW_CHOST}"
-
-  cp /usr/include/FlexLexer.h src/
+  [[ -d "${srcdir}/build-${MSYSTEM}" ]] && rm -rf "${srcdir}/build-${MSYSTEM}"
+  cp -rf "${srcdir}"/${_realname}-${pkgver} "${srcdir}/build-${MSYSTEM}" && cd "${srcdir}/build-${MSYSTEM}"
 
   export MSYS2_ARG_CONV_EXCL="-DDEFENV"
 
@@ -44,6 +47,6 @@ build() {
 }
 
 package() {
-  cd "${srcdir}/build-${MINGW_CHOST}"
+  cd "${srcdir}/build-${MSYSTEM}"
   make DESTDIR="${pkgdir}" install
 }

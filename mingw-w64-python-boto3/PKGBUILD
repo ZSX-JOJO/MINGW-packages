@@ -3,34 +3,39 @@
 _realname=boto3
 pkgbase=mingw-w64-python-${_realname}
 pkgname=("${MINGW_PACKAGE_PREFIX}-python-${_realname}")
-pkgver=1.17.96
-pkgrel=2
+pkgver=1.35.96
+pkgrel=1
 pkgdesc='The AWS SDK for Python (mingw-w64)'
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
+mingw_arch=('mingw64' 'ucrt64' 'clang64' 'clangarm64')
+msys2_references=(
+  'purl: pkg:pypi/boto3'
+)
 url="https://github.com/boto/boto3"
-license=('Apache')
-depends=("${MINGW_PACKAGE_PREFIX}-python-s3transfer")
-makedepends=("${MINGW_PACKAGE_PREFIX}-python-setuptools")
-source=("https://github.com/boto/boto3/archive/$pkgver.tar.gz")
-sha256sums=('20e4db1800f5ee66407aeb8ed818735beb8bee3f3d1aebe616b8114ebb09c980')
+license=('spdx:Apache-2.0')
+depends=("${MINGW_PACKAGE_PREFIX}-python-botocore"
+         "${MINGW_PACKAGE_PREFIX}-python-jmespath"
+         "${MINGW_PACKAGE_PREFIX}-python-s3transfer")
+makedepends=("${MINGW_PACKAGE_PREFIX}-python-build"
+             "${MINGW_PACKAGE_PREFIX}-python-installer"
+             "${MINGW_PACKAGE_PREFIX}-python-setuptools")
+source=("https://pypi.org/packages/source/${_realname::1}/${_realname}/${_realname}-${pkgver}.tar.gz")
+sha256sums=('bace02ef2181d176cedc1f8f90c95c301bb7c555db124cf80bc193cbb52a7c64')
 
-prepare() {  
-  cd "$srcdir"
-  rm -rf python-build-${CARCH} | true
-  cp -r "${_realname}-${pkgver}" "python-build-${CARCH}"
+prepare() {
+  rm -rf python-build-${MSYSTEM} | true
+  cp -r "${_realname}-${pkgver}" "python-build-${MSYSTEM}"
 }
 
 build() {
-  msg "Python build for ${CARCH}"  
-  cd "${srcdir}/python-build-${CARCH}"
-  ${MINGW_PREFIX}/bin/python setup.py build
+  cd "${srcdir}/python-build-${MSYSTEM}"
+  ${MINGW_PREFIX}/bin/python -m build --wheel --skip-dependency-check --no-isolation
 }
 
 package() {
-  cd "${srcdir}/python-build-${CARCH}"
-  MSYS2_ARG_CONV_EXCL="--prefix=;--install-scripts=;--install-platlib=" \
-  ${MINGW_PREFIX}/bin/python setup.py install --prefix=${MINGW_PREFIX} \
-    --root="${pkgdir}" --optimize=1 --skip-build
+  cd "${srcdir}/python-build-${MSYSTEM}"
+  MSYS2_ARG_CONV_EXCL="--prefix=" \
+    ${MINGW_PREFIX}/bin/python -m installer --prefix=${MINGW_PREFIX} \
+    --destdir="${pkgdir}" dist/*.whl
   install -Dm644 LICENSE "${pkgdir}${MINGW_PREFIX}/share/licenses/python-${_realname}/LICENSE"
 }

@@ -6,13 +6,15 @@ pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
 pkgver=0.112
 pkgrel=1
 arch=('any')
-mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
+mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clangarm64')
 pkgdesc="D-Bus Message Bus System (mingw-w64)"
 depends=("${MINGW_PACKAGE_PREFIX}-glib2" "${MINGW_PACKAGE_PREFIX}-dbus" "${MINGW_PACKAGE_PREFIX}-expat")
-makedepends=("${MINGW_PACKAGE_PREFIX}-gcc" "${MINGW_PACKAGE_PREFIX}-pkg-config" "${MINGW_PACKAGE_PREFIX}-gtk-doc")
-options=('strip' 'staticlibs')
+makedepends=("${MINGW_PACKAGE_PREFIX}-cc" "${MINGW_PACKAGE_PREFIX}-autotools" "${MINGW_PACKAGE_PREFIX}-gtk-doc")
 license=("BSD")
 url="https://www.freedesktop.org/wiki/Software/dbus"
+msys2_references=(
+  "cpe: cpe:/a:freedesktop:dbus-glib"
+)
 source=("https://dbus.freedesktop.org/releases/${_realname}/${_realname}-${pkgver}.tar.gz"{,.asc})
 sha256sums=('7d550dccdfcd286e33895501829ed971eeb65c614e73aadb4a08aeef719b143a'
             'SKIP')
@@ -24,9 +26,9 @@ prepare() {
 }
 
 build() {
-  rm -rf build-${MINGW_CHOST}
-  mkdir -p build-${MINGW_CHOST}
-  cd build-${MINGW_CHOST}
+  rm -rf build-${MSYSTEM}
+  mkdir -p build-${MSYSTEM}
+  cd build-${MSYSTEM}
 
   ../${_realname}-${pkgver}/configure \
     --prefix=${MINGW_PREFIX} \
@@ -40,6 +42,6 @@ build() {
 }
 
 package() {
-  cd "${srcdir}/build-${MINGW_CHOST}"
-  make DESTDIR=${pkgdir} install
+  cd "${srcdir}/build-${MSYSTEM}"
+  make DESTDIR="${pkgdir}" install
 }
